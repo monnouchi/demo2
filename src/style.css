@@ -1,4 +1,7 @@
 :root {
+  --release: "2026.10.02-4";
+}
+:root {
   color-scheme: dark;
   --bg: #090e1b;
   --panel: #111b2a;
@@ -2340,4 +2343,12 @@ dialog ul {
   top: 6px;
   right: 8px;
   font-size: 9px;
+}
+
+.build-note {
+  font-size: 9px;
+  color: #6b756b;
+  margin: 0 0 5px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }

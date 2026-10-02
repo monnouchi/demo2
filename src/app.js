@@ -11,8 +11,20 @@ import {
   readCampaign,
   finishCampaignMatch,
   nextCircuit,
-} from "./game.js";
+} from "./game.js?v=2026.10.02-4";
 const $ = (id) => document.getElementById(id);
+const RELEASE = "2026.10.02-4";
+const htmlRelease = document.documentElement.dataset.release || "旧版";
+const cssRelease =
+  getComputedStyle(document.documentElement)
+    .getPropertyValue("--release")
+    .trim()
+    .replaceAll('"', "") || "旧版";
+$("build-version").textContent =
+  htmlRelease === RELEASE && cssRelease === RELEASE
+    ? `読込版 ${RELEASE}（HTML・JS・CSS一致）`
+    : `版の不一致：HTML ${htmlRelease} / JS ${RELEASE} / CSS ${cssRelease}`;
+
 const names = { 1: "刺客", 2: "双刃", 3: "騎士", 4: "女王", 5: "王冠" };
 const marks = { 1: "✧", 2: "Ⅱ", 3: "♞", 4: "✥", 5: "♛" };
 let campaign = initialCampaign();

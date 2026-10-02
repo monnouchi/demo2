@@ -38,6 +38,7 @@ npm run preview    # dist/ を http://localhost:4173 で確認
 
 ```sh
 python tests/mobile.py
+python tests/release.py # 旧保存値・版付きURL・制覇画面・2回再読込
 python tests/audio.py # Web Audioの音程・時刻・分岐・ミュートを計測（実聴ではない）
 # 必要に応じて CHROMIUM_PATH=/path/to/chromium TEST_URL=http://localhost:4173 を指定
 # インストール済みWebKitがあれば BROWSER=webkit python tests/mobile.py
@@ -98,6 +99,10 @@ UIはChromiumのタッチ端末エミュレーションで、320×568、375×548
 - ワークフローの権限はビルドの `contents: read` と配信の `pages: write` / `id-token: write` に限定。PATなどの長期認証情報は追加しません。
 
 GitHub Pagesは有効化済みです。mainへの更新はテスト・ビルドに成功すると自動配信されます。
+
+更新時にHTMLと古いJS/CSSが混ざることを防ぐため、HTMLのCSS・JS参照とJSのゲームモジュール参照には版付きURLを使います。現在の版は `2026.10.02-4`。ルール画面下部の「読込版」でHTML・JS・CSSの一致を確認できます。配信ファイルを変更するときは `index.html` の `data-release` とURL、`src/app.js` の `RELEASE` とimport URL、`src/style.css` の `--release` を同じ新しい版へ更新してください。
+
+制覇画面追加前のJSと新HTMLの混在では、通常結果画面のままになることを再現しました。新しいファイルが揃った状態では旧版の完了データをそのまま読み込み、再読込を2回行っても成績・制覇回数は変わりません。新たな大将勝利では王冠の登場演出と専用音を一度だけ実行し、再読込時は静かな終幕表示になります。演出済みフラグで達成記録を消す処理はありません。動きを減らす設定や音OFFでも終幕画面自体は表示します。
 
 ## 構成
 
