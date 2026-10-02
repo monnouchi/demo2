@@ -121,3 +121,16 @@ export function prepareRound(state, rng = Math.random) {
     return next;
   };
 }
+
+/** Display a completed match without mistaking round wins for weighted points. */
+export function matchSummary(state) {
+  if (state.history.length !== 5) throw new RangeError("Match not finished");
+  const counts = [0, 0, 0]; // Player wins, losses, equal cards.
+  const lateScores = [0, 0];
+  for (const [index, round] of state.history.entries()) {
+    counts[round.result > 0 ? 0 : round.result < 0 ? 1 : 2]++;
+    if (index >= 3 && round.result)
+      lateScores[round.result > 0 ? 0 : 1] += round.points;
+  }
+  return { counts, lateScores };
+}

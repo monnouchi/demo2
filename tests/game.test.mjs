@@ -7,6 +7,7 @@ import {
   initialState,
   resolveRound,
   matchResult,
+  matchSummary,
   prepareRound,
   cpuPolicy,
   chooseCpu,
@@ -130,4 +131,30 @@ test("one-card ending is forced, and all equal cards yields a match draw", () =>
   assert.equal(matchResult(s), 0);
   assert.deepEqual(s.scores, [0, 0]);
   assert.throws(() => prepareRound(s));
+});
+
+test("recap distinguishes round wins from weighted match points", () => {
+  const player = [1, 3, 4, 2, 5],
+    cpu = [5, 2, 3, 4, 1];
+  let state = initialState();
+  assert.throws(() => matchSummary(state), /not finished/);
+  player.forEach((card, i) => {
+    state = resolveRound(state, card, cpu[i]);
+  });
+  assert.deepEqual(matchSummary(state), {
+    counts: [3, 2, 0],
+    lateScores: [0, 4],
+  });
+  assert.deepEqual(state.scores, [3, 4]);
+  assert.equal(
+    matchResult(state),
+    -1,
+    "Three round wins can still lose the match",
+  );
+  let draw = initialState();
+  for (const card of CARDS) draw = resolveRound(draw, card, card);
+  assert.deepEqual(matchSummary(draw), {
+    counts: [0, 0, 5],
+    lateScores: [0, 0],
+  });
 });

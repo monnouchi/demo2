@@ -652,7 +652,7 @@ footer {
   pointer-events: none;
 }
 .clash .impact {
-  animation: impact 1s ease-out both;
+  animation: impact 600ms ease-out both;
 }
 .reversal .impact {
   color: #ffe1a5;
@@ -1310,5 +1310,113 @@ footer {
 @media (min-height: 781px) and (max-width: 699px) {
   .app {
     gap: 7px;
+  }
+}
+
+/* Outcome stays readable after the burst; colour follows the match, not the last card. */
+.arena:not(.finished) .round-winner {
+  border-color: var(--gold);
+  box-shadow: 0 0 25px #eed19950;
+}
+.arena:not(.finished) .round-loser {
+  filter: brightness(0.7);
+}
+.duel-label {
+  white-space: nowrap;
+  letter-spacing: 1px;
+}
+.message[data-result="loss"] > span {
+  color: var(--coral);
+}
+.message[data-result="draw"] > span {
+  color: #b9c7d1;
+}
+.match-loss .impact {
+  color: var(--coral);
+  border-color: #c5898970;
+  text-shadow: 0 0 24px #eea5a540;
+}
+.match-draw .impact {
+  color: #d0dae5;
+  border-color: #a6b5c070;
+  text-shadow: none;
+}
+.match-loss .orbit {
+  border-color: #d9929238;
+  box-shadow: none;
+}
+.match-draw .orbit {
+  border-color: #a6b5c038;
+  box-shadow: none;
+}
+
+/* Reserve the same height for the cards and recap so the rematch target stays put. */
+.player-zone {
+  --card-height: 108px;
+}
+.playing-card {
+  height: var(--card-height);
+}
+.recap {
+  width: 100%;
+  height: var(--card-height);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid #92c5b343;
+  border-radius: 8px;
+  background: linear-gradient(110deg, #25473d60, #13232b80);
+}
+.recap-stats {
+  display: flex;
+  gap: 24px;
+  font:
+    24px Georgia,
+    serif;
+  line-height: 1;
+  color: var(--text);
+}
+.recap-stats small {
+  font:
+    10px -apple-system,
+    sans-serif;
+  margin-left: 5px;
+  color: var(--muted);
+}
+.recap p {
+  font-size: 10px;
+  line-height: 1.4;
+}
+.recap > small {
+  font-size: 10px;
+  color: var(--mint);
+  line-height: 1.4;
+}
+@media (max-height: 780px) and (max-width: 699px) {
+  .player-zone {
+    --card-height: 90px;
+  }
+}
+@media (max-height: 700px) and (max-width: 699px) {
+  .player-zone {
+    --card-height: 85px;
+  }
+}
+@media (max-height: 600px) and (max-width: 699px) {
+  .player-zone {
+    --card-height: 70px;
+  }
+  .recap-stats {
+    font-size: 20px;
+  }
+  .recap > small {
+    font-size: 9px;
+  }
+}
+@media (min-height: 781px) and (max-width: 699px) {
+  .player-zone {
+    --card-height: 100px;
   }
 }

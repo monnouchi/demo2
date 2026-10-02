@@ -21,10 +21,10 @@
   <body>
     <main class="app">
       <header class="topbar">
-        <a class="brand" href="./" aria-label="切り札は最後に ホーム"
-          ><span class="brand-icon">✦</span
-          ><span>LAST TRUMP<small>切り札は最後に</small></span></a
-        >
+        <div class="brand" aria-label="切り札は最後に">
+          <span class="brand-icon">✦</span
+          ><span>LAST TRUMP<small>切り札は最後に</small></span>
+        </div>
         <div class="tools">
           <button
             id="sound"
@@ -67,12 +67,12 @@
         <div class="orbit orbit-two"></div>
         <div class="arena-cross"></div>
         <div class="duel-side player-side">
-          <span class="duel-label">YOU</span>
+          <span id="player-label" class="duel-label">YOU</span>
           <div id="player-stage" class="stage-card"></div>
         </div>
         <div class="versus">VS<small id="stake">1 POINT</small></div>
         <div class="duel-side cpu-side">
-          <span class="duel-label">CPU</span>
+          <span id="cpu-label" class="duel-label">CPU</span>
           <div id="cpu-stage" class="stage-card"></div>
         </div>
         <div id="fx" class="fx" aria-hidden="true"></div>
@@ -90,8 +90,10 @@
       </section>
       <section class="player-zone">
         <div class="section-label">
-          <span>あなたの手札 <small id="hand-count">5 CARDS</small></span
-          ><span>タップで選択</span>
+          <span
+            ><span id="hand-title">あなたの手札</span>
+            <small id="hand-count">5 CARDS</small></span
+          ><span id="hand-hint">タップで選択</span>
         </div>
         <div id="hand" class="hand"></div>
       </section>
