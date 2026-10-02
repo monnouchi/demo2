@@ -2172,3 +2172,172 @@ dialog ul {
     margin: 7px 0;
   }
 }
+
+/* A completed circuit is an ending, with replay as a quiet optional action. */
+#crown-record {
+  color: #936716;
+  font-weight: 600;
+}
+#completion[hidden],
+#crown-record[hidden] {
+  display: none;
+}
+.app.campaign-complete
+  > :not(.topbar):not(.campaign-bar):not(.completion):not(#action) {
+  display: none;
+}
+.completion {
+  text-align: center;
+  padding: 18px 12px;
+  border: 1px solid #c9b57c;
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 25%, #fff3c5, #fffdf6 68%);
+  color: #294b3a;
+  box-shadow: 0 12px 45px #9b782219;
+}
+.completion-eyebrow {
+  color: #8a6721;
+  font-size: 10px;
+  letter-spacing: 3px;
+  margin: 0;
+}
+.completion-crown {
+  color: #a37518;
+  font:
+    88px Georgia,
+    serif;
+  line-height: 1.15;
+  text-shadow:
+    0 3px #fff,
+    0 0 28px #e8c25980;
+}
+.completion h1 {
+  font-size: 38px;
+  letter-spacing: 7px;
+  margin: 3px 0 12px;
+}
+.completion-story {
+  font-size: 13px;
+  margin: 8px 0 20px;
+}
+.completion-path {
+  font-size: 10px;
+  color: #4a715b;
+  padding: 10px 0;
+  border-block: 1px solid #d8d8bc;
+}
+#completion-score,
+#completion-record {
+  font-size: 11px;
+  margin: 12px 0;
+}
+.completion-seal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: #896315;
+  margin-top: 15px;
+}
+.completion-seal span {
+  font-size: 11px;
+}
+.completion-seal strong {
+  font-size: 26px;
+  font-weight: 500;
+}
+.completion-end {
+  font-size: 13px;
+  margin: 20px 0 7px;
+}
+.completion small {
+  font-size: 10px;
+  color: #68766c;
+}
+.app.campaign-complete #action {
+  background: transparent;
+  color: #617068;
+  border: 1px solid #b9c5b9;
+  box-shadow: none;
+  font-size: 12px;
+  min-height: 44px;
+  margin: 2px 0 0;
+}
+.completion.celebrate .completion-crown {
+  animation: crown-arrives 950ms ease-out both;
+}
+@keyframes crown-arrives {
+  from {
+    opacity: 0;
+    transform: translateY(-15px) scale(0.7);
+    filter: brightness(1.7);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+@media (max-height: 700px) {
+  .completion {
+    padding: 12px 10px;
+  }
+  .completion-crown {
+    font-size: 62px;
+  }
+  .completion h1 {
+    font-size: 30px;
+    margin: 0 0 8px;
+  }
+  .completion-story {
+    margin: 6px 0 12px;
+  }
+  .completion-end {
+    margin-top: 12px;
+  }
+}
+@media (max-height: 600px) {
+  .completion {
+    padding: 9px;
+  }
+  .completion-crown {
+    font-size: 48px;
+  }
+  .completion h1 {
+    font-size: 26px;
+  }
+  .completion-path {
+    padding: 6px 0;
+    margin: 8px 0;
+  }
+  .completion-story,
+  .completion-end {
+    font-size: 11px;
+  }
+  #completion-score,
+  #completion-record {
+    margin: 8px 0;
+  }
+  .completion-seal {
+    margin-top: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .completion.celebrate .completion-crown {
+    animation: none;
+  }
+}
+
+#completion-title:focus {
+  outline: none;
+}
+
+.campaign-bar {
+  position: relative;
+}
+#crown-record {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 9px;
+}

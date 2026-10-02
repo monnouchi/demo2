@@ -31,6 +31,8 @@ function renderCampaign() {
   $("opponent-name").title = OPPONENTS[matchStage].strategy;
   $("opponent-guide").textContent =
     `${OPPONENTS[matchStage].name}：${OPPONENTS[matchStage].strategy}`;
+  $("crown-record").hidden = campaign.clears === 0;
+  $("crown-record").textContent = `♛ 五人制覇 ${campaign.clears}回`;
   $("record").textContent =
     `通算${campaign.wins + campaign.losses + campaign.draws}試合 · ${campaign.wins}勝 ${campaign.losses}敗 ${campaign.draws}分`;
 }
@@ -60,6 +62,15 @@ function audioReady() {
     /* Visual feedback stays available without audio. */
   }
 }
+const activeVoices = new Set();
+function silence() {
+  for (const oscillator of activeVoices) {
+    try {
+      oscillator.stop();
+    } catch {}
+  }
+  activeVoices.clear();
+}
 function tone(
   frequency,
   duration,
@@ -67,6 +78,7 @@ function tone(
   type = "sine",
   gain = 0.07,
   endFrequency = frequency,
+  attack = 0.012,
 ) {
   if (!soundOn || !audio || audio.state !== "running") return;
   const start = audio.currentTime + delay;
@@ -79,14 +91,27 @@ function tone(
     start + duration,
   );
   volume.gain.setValueAtTime(0, start);
-  volume.gain.linearRampToValueAtTime(gain, start + 0.012);
+  volume.gain.linearRampToValueAtTime(gain, start + attack);
   volume.gain.exponentialRampToValueAtTime(0.001, start + duration);
   oscillator.connect(volume);
   volume.connect(audio.destination);
+  activeVoices.add(oscillator);
+  oscillator.onended = () => {
+    activeVoices.delete(oscillator);
+    oscillator.disconnect();
+    volume.disconnect();
+  };
   oscillator.start(start);
   oscillator.stop(start + duration + 0.02);
 }
 function cue(kind) {
+  if (kind === "champion") {
+    // One finale replaces both normal victory and the perfect-match cue.
+    [392, 523, 659, 784, 1046].forEach((n, i) =>
+      tone(n, 0.32, i * 0.115, "triangle", 0.045),
+    );
+    [523, 659, 784].forEach((n) => tone(n, 0.55, 0.58, "sine", 0.025));
+  }
   if (kind === "select") {
     tone(520, 0.09);
     tone(780, 0.08, 0.04);
@@ -94,43 +119,85 @@ function cue(kind) {
   if (kind === "charge") {
     [160, 220, 330].forEach((n, i) => tone(n, 0.18, i * 0.12, "triangle"));
   }
-  if (kind === "impact") {
-    tone(65, 0.3, 0, "triangle", 0.16);
-    tone(880, 0.3, 0.04);
+  if (kind === "victory" || kind === "perfect") {
+    const notes =
+      kind === "perfect" ? [392, 494, 784, 1175] : [392, 494, 587, 784];
+    notes.forEach((n, i) => tone(n, 0.5, i * 0.11, "sine", 0.055));
   }
-  if (kind === "reverse") {
-    tone(1600, 0.14, 0, "sawtooth", 0.05, 130);
-    tone(85, 0.38, 0.06, "triangle", 0.16, 38);
-    [660, 990, 1320].forEach((n, i) =>
-      tone(n, 0.32, 0.1 + i * 0.045, "sine", 0.045),
-    );
+  if (kind === "draw" || kind === "mirror") {
+    // A level, unresolved pair; mirror adds a quiet echo, not a victory fanfare.
+    [440, 622].forEach((n) => tone(n, 0.26, 0, "sine", 0.04));
+    if (kind === "mirror")
+      [440, 622].forEach((n) => tone(n, 0.2, 0.3, "sine", 0.025));
   }
-  if (kind === "victory")
-    [392, 494, 587, 784].forEach((n, i) => tone(n, 0.65, i * 0.13));
-  if (kind === "draw") [392, 523].forEach((n) => tone(n, 0.5));
   if (kind === "defeat")
-    [330, 294, 220].forEach((n, i) => tone(n, 0.4, i * 0.15));
+    [220, 165, 110].forEach((n, i) =>
+      tone(n, 0.25, i * 0.11, "triangle", 0.055),
+    );
 }
-function cardCue(n) {
+function roundCue(round) {
+  if (!round.result) {
+    // Fast attack and inharmonic partials make a short metal collision.
+    // Combined peak gain stays below the old impact's 0.23; no volume boost.
+    tone(170, 0.085, 0, "triangle", 0.055, 80, 0.002);
+    [1450, 2183, 3311].forEach((n, i) =>
+      tone(n, 0.11 + i * 0.02, 0, "sine", 0.035 - i * 0.006, n * 0.91, 0.001),
+    );
+    return;
+  }
+  const won = round.result > 0;
+  // The player's outcome comes first, before the winning card's texture.
+  if (won) {
+    tone(660, 0.1, 0, "sine", 0.065);
+    tone(880, 0.12, 0.065, "sine", 0.055);
+  } else {
+    tone(220, 0.12, 0, "triangle", 0.07, 150, 0.004);
+    tone(130, 0.15, 0.065, "triangle", 0.06, 65, 0.004);
+  }
+  const n = won ? round.playerCard : round.cpuCard;
+  let voice = 0;
+  const texture = (
+    frequency,
+    duration,
+    delay = 0,
+    type = "sine",
+    gain = 0.035,
+    end = frequency,
+  ) => {
+    // CPU textures retain card rhythm but descend in a darker register.
+    const low = (280 + n * 11) / (1 + voice++ * 0.18);
+    tone(
+      won ? frequency : low,
+      duration,
+      0.16 + delay,
+      won ? type : "triangle",
+      gain * (won ? 1 : 0.85),
+      won ? end : low * 0.7,
+      0.003,
+    );
+  };
   if (n === 1) {
-    tone(1200, 0.16, 0, "sawtooth", 0.04, 120);
-    tone(100, 0.22, 0.07, "triangle", 0.1, 45);
+    texture(1200, 0.12, 0, "sawtooth", 0.035, 120);
+    texture(100, 0.15, 0.06, "triangle", 0.07, 45);
   }
   if (n === 2) {
-    tone(950, 0.1, 0, "sawtooth", 0.045, 220);
-    tone(1400, 0.14, 0.11, "sawtooth", 0.045, 180);
+    texture(950, 0.08, 0, "sawtooth", 0.03, 220);
+    texture(1400, 0.11, 0.08, "sawtooth", 0.03, 180);
   }
   if (n === 3) {
-    tone(75, 0.25, 0, "triangle", 0.14, 40);
-    [487, 733, 1097].forEach((n) => tone(n, 0.3, 0.015, "sine", 0.035));
+    texture(75, 0.16, 0, "triangle", 0.07, 40);
+    [487, 733, 1097].forEach((f) => texture(f, 0.17, 0.01, "sine", 0.025));
   }
-  if (n === 4)
-    [523, 659, 1046].forEach((n, i) => tone(n, 0.42, i * 0.055, "sine", 0.055));
+  if (n === 4) [523, 659, 1046].forEach((f, i) => texture(f, 0.17, i * 0.035));
   if (n === 5) {
-    tone(98, 0.3, 0, "triangle", 0.1);
-    [392, 494, 587, 784].forEach((n, i) =>
-      tone(n, 0.4, 0.04 + i * 0.04, "triangle", 0.04),
+    texture(98, 0.17, 0, "triangle", 0.06);
+    [392, 494, 587, 784].forEach((f, i) =>
+      texture(f, 0.15, 0.025 + i * 0.025, "triangle", 0.025),
     );
+  }
+  if (round.reversal) {
+    // A second blade marks the exception. CPU reversal never gets bright chimes.
+    texture(1600, 0.12, 0.09, "sawtooth", 0.025, 130);
   }
 }
 function cardEffect(round) {
@@ -160,7 +227,10 @@ $("sound").onclick = () => {
   if (soundOn) {
     audioReady();
     cue("select");
-  } else if (audio) audio.suspend().catch(() => {});
+  } else if (audio) {
+    silence();
+    audio.suspend().catch(() => {});
+  }
 };
 function message(kicker, title, detail) {
   $("message-kicker").textContent = kicker;
@@ -307,7 +377,23 @@ function beginRound() {
     battle();
   }
 }
+function showCompletion(fresh = false) {
+  document.querySelector(".app").classList.add("campaign-complete");
+  document.querySelector(".app").classList.remove("intro", "choosing");
+  $("completion").hidden = false;
+  $("opponent-name").textContent = "五人制覇 · 終幕";
+  $("completion").classList.toggle("celebrate", fresh);
+  $("completion-score").textContent = fresh
+    ? `大将との最終戦　${state.scores[0]} 対 ${state.scores[1]}点で勝利`
+    : "五人すべてに勝利した記録が残っています。";
+  $("completion-count").textContent = `♛ × ${campaign.clears}`;
+  $("completion-record").textContent = $("record").textContent;
+  action("もう一度遊ぶ（任意）");
+  $("completion-title").focus({ preventScroll: true });
+}
 function start() {
+  $("completion").hidden = true;
+  document.querySelector(".app").classList.remove("campaign-complete");
   if (campaign.completed) {
     campaign = nextCircuit(campaign);
     saveCampaign();
@@ -363,7 +449,7 @@ async function battle() {
   await wait(reduced.matches ? 100 : 280);
   if (round.reversal && !reduced.matches) {
     $("arena").classList.add("reversal-hold");
-    tone(180, 0.18, 0, "triangle", 0.07, 540);
+    tone(180, 0.18, 0, "triangle", 0.05, round.result > 0 ? 540 : 70);
     await wait(200);
     $("arena").classList.remove("reversal-hold");
   }
@@ -384,10 +470,7 @@ async function battle() {
       : round.result < 0
         ? "惜敗"
         : "相打ち";
-  if (round.reversal) cue("reverse");
-  else if (round.result)
-    cardCue(round.result > 0 ? round.playerCard : round.cpuCard);
-  else cue("impact");
+  roundCue(round);
   cardEffect(round);
   if (round.result) burst(round.reversal, round.result > 0);
   if (round.reversal && !reduced.matches) await wait(100);
@@ -422,7 +505,8 @@ async function battle() {
   );
   await wait(reduced.matches ? 150 : 620);
   if (state.history.length === 5) {
-    await wait(reduced.matches ? 150 : 550);
+    // Let the final round audio finish even when visual motion is reduced.
+    await wait(reduced.matches ? 300 : 550);
     const result = matchResult(state);
     const sweep = sweepKind(state);
     phase = "finished";
@@ -459,16 +543,23 @@ async function battle() {
           ? `次は${OPPONENTS[campaign.stage].name}との5ラウンドです。`
           : `${OPPONENTS[matchStage].name}から再挑戦できます。`,
     );
-    cue(result > 0 ? "victory" : result < 0 ? "defeat" : "draw");
-    if (sweep === "perfect") tone(1175, 0.7, 0.24, "sine", 0.05);
-    if (sweep === "mirror") {
-      tone(659, 0.45, 0.16, "sine", 0.04);
-      tone(523, 0.45, 0.32, "sine", 0.04);
-    }
+    cue(
+      campaign.completed
+        ? "champion"
+        : sweep === "perfect"
+          ? "perfect"
+          : sweep === "mirror"
+            ? "mirror"
+            : result > 0
+              ? "victory"
+              : result < 0
+                ? "defeat"
+                : "draw",
+    );
     if (result !== 0) burst(result > 0, result > 0);
     action(
       campaign.completed
-        ? "先鋒からもう一周する"
+        ? "もう一度遊ぶ（任意）"
         : result > 0
           ? `次の相手・${OPPONENTS[campaign.stage].name}に挑む`
           : `${OPPONENTS[matchStage].name}に再挑戦する`,
@@ -485,6 +576,7 @@ async function battle() {
         "次は残り1枚同士。ボタンで自動決着へ進みます。";
   }
   renderHand();
+  if (campaign.completed) showCompletion(true);
   $("help").disabled = false;
 }
 $("action").onclick = () => {
@@ -509,14 +601,9 @@ updateSound();
 if (campaign.completed) {
   renderCampaign();
   phase = "completed";
-  document.querySelector(".app").classList.add("intro");
-  message(
-    "5人勝ち抜き達成",
-    "前回、大将に勝利しました。",
-    "通算戦績を引き継いで、先鋒からもう一周できます。",
-  );
-  $("hand").hidden = true;
-  action("先鋒からもう一周する");
-} else start();
-$("rules").showModal();
-$("rules").scrollTop = 0;
+  showCompletion();
+} else {
+  start();
+  $("rules").showModal();
+  $("rules").scrollTop = 0;
+}

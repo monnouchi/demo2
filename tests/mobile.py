@@ -135,7 +135,7 @@ with sync_playwright() as p:
         if name in ['victory', 'swept']:
             winner = cards[4] if name == 'victory' else 5
             assert f'card-{winner}' in page.locator('#card-effect').get_attribute('class')
-        page.wait_for_selector('#arena.finished')
+        page.wait_for_selector('#arena.finished', state='attached')
         assert page.locator('#history li.won, #history li.lost, #history li.tied').count() == 5
         saved = page.evaluate('JSON.parse(localStorage.getItem("last-trump-campaign"))')
         assert saved['wins'] + saved['losses'] + saved['draws'] == 2
@@ -187,21 +187,49 @@ with sync_playwright() as p:
             if r < 3: page.locator('#action').tap()
         assert '最終決着' in page.locator('#action').inner_text()
         page.locator('#action').tap()
-        page.wait_for_selector('#arena.finished')
+        page.wait_for_selector('#arena.finished', state='attached')
         assert f'通算{stage+1}試合' in page.locator('#record').inner_text()
         if stage < 4: page.locator('#action').tap()
     assert '5人勝ち抜き達成' in page.locator('#message-kicker').inner_text()
-    assert 'もう一周' in page.locator('#action').inner_text()
+    assert '任意' in page.locator('#action').inner_text()
+    assert page.locator('#completion').is_visible()
+    assert '♛ × 1' in page.locator('#completion-count').inner_text()
+    assert page.locator('#completion-title').evaluate('(e) => e === document.activeElement')
+    assert page.locator('#action').bounding_box()['y'] + page.locator('#action').bounding_box()['height'] <= 548
     page.screenshot(path=str(OUT / 'campaign-clear.png'))
     page.reload()
-    page.locator('#ready').tap()
-    assert '前回、大将に勝利' in page.locator('#message-title').inner_text()
+    assert not page.locator('#rules').evaluate('(e) => e.open')
+    assert page.locator('#completion').is_visible()
+    assert '五人制覇' in page.locator('#completion-title').inner_text()
+    assert 'celebrate' not in page.locator('#completion').get_attribute('class')
     assert '通算5試合' in page.locator('#record').inner_text()
     page.locator('#action').tap()
     assert '1/5：先鋒' in page.locator('#opponent-name').inner_text()
+    assert not page.locator('#completion').is_visible()
+    assert '五人制覇 1回' in page.locator('#crown-record').inner_text()
     assert '通算5試合' in page.locator('#record').inner_text()
     results.append({'campaign': 'all five opponents, auto final round, completion, persistence, next circuit'})
     page.close()
+
+    # A saved crown must not add a row that pushes compact match controls offscreen.
+    for width, height in [(320,568),(375,548),(390,664)]:
+        page=browser.new_page(viewport={'width':width,'height':height},is_mobile=True,has_touch=True,reduced_motion='reduce')
+        page.on('pageerror', lambda error: errors.append(str(error)))
+        page.add_init_script("Math.random=()=>0;localStorage.setItem('last-trump-campaign',JSON.stringify({version:1,stage:1,wins:6,losses:0,draws:0,clears:1,completed:false}));")
+        page.goto(URL)
+        page.locator('#ready').click()
+        for i,card in enumerate([2,3,4,5]):
+            page.locator(f'[data-card="{card}"]').tap()
+            page.locator('#action').tap()
+            page.wait_for_function('!document.querySelector("#action").disabled')
+            assert page.evaluate('document.documentElement.scrollHeight<=innerHeight')
+            if i<3: page.locator('#action').tap()
+        page.locator('#action').tap()
+        page.wait_for_function('!document.querySelector("#action").disabled')
+        assert page.evaluate('document.documentElement.scrollHeight<=innerHeight')
+        assert page.locator('#crown-record').is_visible()
+        results.append({'saved_crown_viewport':[width,height],'checks':'all rounds and final result remain within viewport'})
+        page.close()
 
     # Simulated safe-area insets check primary controls remain above the home indicator.
     for width, height in [(390, 844), (390, 664)]:
