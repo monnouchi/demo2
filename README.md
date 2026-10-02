@@ -69,14 +69,15 @@ UIはChromiumのタッチ端末エミュレーションで、320×568、375×548
 
 ## リポジトリと公開
 
-- 所在: `https://github.com/monnouchi/demo2`（チェックアウト `/workspace/demo2`）。GitHubコネクタのメタデータで公開リポジトリであることを確認しました。
-- 作業開始時はコミットもファイルもない空リポジトリ。既存差分、`AGENTS.md`、`.agents/skills`、デプロイ設定はありませんでした。リモートのデフォルトブランチ名は `main` ですが、`git ls-remote origin` に参照はありませんでした。
-- 今回はローカルの `feat/last-trump` に実装。push、PR作成、デプロイ、公開範囲変更、新規サービス契約は実施していません。
-- 現在のGitHub Pages設定はAPIへのアクセスが拒否されたため未確認。既存の公開先URLは特定できていません。
+- ソース: [monnouchi/demo2](https://github.com/monnouchi/demo2)（公開リポジトリ）。
+- Pages配信先: <https://monnouchi.github.io/demo2/>。GitHub Pagesの初回有効化とdeployジョブの成功後に利用できます。
+- [Test and deploy Pages](https://github.com/monnouchi/demo2/actions/workflows/pages.yml) が `main` のpushと手動実行でテスト・ビルド・公開を行います。PRではテストとビルドだけを実行します。
+- 初回設定は **Settings → Pages → Build and deployment → Source: GitHub Actions**。以後は成功した `main` のビルドが自動公開されます。
+- Node.js 24で `npm test` → `npm run build` を実行し、**`dist/` の中身だけ**をPages artifactとして配信します。リポジトリルート、テスト、検証画像、開発ツールはサイトに含めません。
+- JavaScript/CSS参照は相対パスなので `/demo2/` 配下でも動作します。Node常駐、APIキー、新規サービス契約は不要です。
+- ワークフローの権限はビルドの `contents: read` と配信の `pages: write` / `id-token: write` に限定。PATなどの長期認証情報は追加しません。
 
-公開への最小手順は、実機確認後にこの差分を承認し、`npm run build` で得た **`dist/` の中身**を、承認したHTTPS静的ホストへ配信することです。相対パスなので `/demo2/` のようなサブディレクトリにも配置できます。Nodeの常駐・環境変数・APIキーは不要です。
-
-GitHub Pagesを選ぶ場合は、承認後にソースの初回push・デフォルトブランチの初期化方針を決め、PagesのActions配信を設定し、`npm run build` → `dist/` をPages artifactとしてアップロードするworkflowを追加してください。空リポジトリにはPRの比較先がないため、今回無断でmainを初期化していません。初期化後にPRが必要ならdraftで作成します。Pages設定やworkflowは今回変更していません。
+作業開始時はコミットもファイルもない空リポジトリで、既存差分・`AGENTS.md`・`.agents/skills`・デプロイ設定はありませんでした。初回実装のローカル検証後、ユーザーの承認を受けてmainへの反映とPages公開を進めています。
 
 ## 構成
 
