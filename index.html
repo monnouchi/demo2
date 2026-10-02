@@ -38,6 +38,9 @@
           </button>
         </div>
       </header>
+      <section class="campaign-bar" aria-label="対戦相手と通算戦績">
+        <strong id="opponent-name"></strong><span id="record"></span>
+      </section>
       <section class="match-meta">
         <span class="eyebrow"></span><span id="round-label">ROUND 01 / 05</span>
       </section>
@@ -74,6 +77,7 @@
           <span id="cpu-label" class="duel-label">CPU</span>
           <div id="cpu-stage" class="stage-card"></div>
         </div>
+        <div id="card-effect" class="card-effect" aria-hidden="true"></div>
         <div id="fx" class="fx" aria-hidden="true"></div>
         <div id="impact" class="impact" aria-hidden="true"></div>
       </section>
@@ -110,15 +114,23 @@
     </main>
     <dialog id="rules" aria-labelledby="rules-title">
       <div class="dialog-heading">
-        <h2 id="rules-title">遊び方</h2>
+        <div>
+          <p class="dialog-game-title">切り札は最後に</p>
+          <h2 id="rules-title">5人勝ち抜きの遊び方</h2>
+        </div>
         <button
           id="close-rules"
+          autofocus
           class="icon-button"
           aria-label="ルールを閉じる"
         >
           ×
         </button>
       </div>
+      <p id="opponent-guide" class="opponent-guide"></p>
+      <p class="campaign-rule">
+        先鋒 → 次鋒 → 中堅 → 副将 → 大将<br />1人と5ラウンド。勝てば次へ、負け・引分は同じ相手に再挑戦。
+      </p>
       <div class="rule-example">
         <span>1</span><strong>›</strong><span>5</span
         ><small>1だけは5に勝つ</small>
@@ -129,8 +141,8 @@
           ><br />大きい数字が勝利。同じ数字は0点。
         </li>
         <li>
-          <b>5戦の合計点で決着。</b><br />第1〜3戦は1点。<strong
-            >第4・5戦は2点。</strong
+          <b>5ラウンドの合計点で決着。</b><br />第1〜3ラウンドは1点。<strong
+            >第4・5ラウンドは2点。</strong
           ><br />合計が同点なら引き分け。
         </li>
         <li>
@@ -139,8 +151,10 @@
           ><br />別の札をタップすれば選び直せます。
         </li>
       </ol>
-      <p class="fair-note">CPUはあなたが選ぶ前に札を確定します。</p>
-      <button id="ready" class="primary" autofocus>遊ぶ <span>→</span></button>
+      <p class="fair-note">
+        第5ラウンドは残り1枚で自動決着。CPUはあなたが選ぶ前に札を確定します。
+      </p>
+      <button id="ready" class="primary">遊ぶ <span>→</span></button>
     </dialog>
     <script type="module" src="./src/app.js"></script>
   </body>

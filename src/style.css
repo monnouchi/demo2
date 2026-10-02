@@ -1834,3 +1834,341 @@ dialog ul {
 .app.choosing #action:disabled {
   visibility: hidden;
 }
+.campaign-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--mint);
+  background: #ffffff88;
+  border-radius: 4px;
+  line-height: 1.3;
+}
+.campaign-bar strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.campaign-bar span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.campaign-rule {
+  font-size: 11px;
+  margin-top: 12px;
+}
+#rules .dialog-heading h2 {
+  font-size: 20px;
+}
+@media (max-height: 700px) and (max-width: 699px) {
+  .app:not(.intro) {
+    gap: 5px;
+  }
+  .app:not(.intro) .arena {
+    height: 110px;
+  }
+  .app:not(.intro) .stage-card {
+    height: 94px;
+    width: 72px;
+  }
+  .app:not(.intro):not(.choosing) .player-zone {
+    --card-height: 78px;
+  }
+}
+@media (max-height: 600px) and (max-width: 699px) {
+  .app:not(.intro) {
+    gap: 3px;
+  }
+  .campaign-bar {
+    padding: 4px 8px;
+    gap: 1px;
+  }
+  .campaign-bar strong {
+    font-size: 11px;
+  }
+  .campaign-bar span {
+    font-size: 9px;
+  }
+  .app:not(.intro) .arena {
+    height: 78px;
+  }
+  .app:not(.intro) .stage-card {
+    height: 68px;
+    width: 53px;
+  }
+  .app:not(.intro) .stage-card .card-sigil {
+    font-size: 25px;
+  }
+  .app:not(.intro):not(.choosing) .player-zone {
+    --card-height: 64px;
+  }
+  #rules .quick-rules li {
+    font-size: 11px;
+    margin: 7px 0;
+  }
+  #rules .rule-example {
+    margin: 8px 0;
+  }
+  #rules .campaign-rule {
+    font-size: 10px;
+    margin-top: 9px;
+  }
+}
+.dialog-game-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mint);
+  margin: 0 0 5px;
+}
+.opponent-guide {
+  margin: 9px 0;
+  font-size: 10px;
+  color: var(--mint);
+}
+.card-effect {
+  --effect-ink: #23745b;
+  position: absolute;
+  inset: -8px 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+.card-effect.effect-cpu {
+  --effect-ink: #b43f5a;
+}
+.effect-symbol {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  font:
+    76px Georgia,
+    serif;
+  color: var(--effect-ink);
+  opacity: 0;
+  animation: emblem-hit 0.65s ease-out;
+}
+.strike,
+.shock-ring,
+.regal-rays {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
+.card-1 .strike-one,
+.card-2 .strike {
+  display: block;
+  width: 190px;
+  height: 5px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--effect-ink),
+    #fff 55%,
+    var(--effect-ink),
+    transparent
+  );
+  box-shadow: 0 0 12px var(--effect-ink);
+  transform: translate(-50%, -50%) rotate(-32deg);
+  animation: blade-cut 0.45s ease-out both;
+}
+.card-2 .strike-two {
+  transform: translate(-50%, -50%) rotate(32deg);
+  animation-delay: 0.12s;
+}
+.card-3 .shock-ring {
+  display: block;
+  width: 140px;
+  height: 100px;
+  border: 4px double var(--effect-ink);
+  border-radius: 25%;
+  animation: metal-impact 0.6s ease-out both;
+}
+.card-3 .effect-symbol {
+  text-shadow:
+    3px 0 #fff,
+    -3px 0 #d1ded6;
+}
+.card-4 .regal-rays {
+  display: block;
+  width: 135px;
+  height: 135px;
+  border: 3px solid var(--effect-ink);
+  box-shadow:
+    0 0 0 12px #b993df40,
+    0 0 0 25px #b993df20;
+  animation: royal-bloom 0.65s ease-out both;
+}
+.card-5 {
+  --effect-ink: #ac761c;
+}
+.card-5.effect-cpu {
+  --effect-ink: #aa5065;
+}
+.card-5 .regal-rays {
+  display: block;
+  width: 200px;
+  height: 200px;
+  background: repeating-conic-gradient(
+    from 0deg,
+    transparent 0deg 20deg,
+    #dbac3940 21deg 28deg,
+    transparent 29deg 40deg
+  );
+  border-radius: 50%;
+  animation: royal-bloom 0.7s ease-out both;
+}
+.card-5 .effect-symbol {
+  text-shadow: 0 0 18px #ffe195;
+}
+.reversal-hold .stage-card {
+  filter: contrast(1.2);
+  box-shadow: 0 0 24px #d89a32;
+}
+.assassination {
+  --effect-ink: #9d5706;
+}
+.assassination .strike {
+  display: block;
+  width: 260px;
+  height: 8px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #b8760d,
+    #fff9df,
+    #b8760d,
+    transparent
+  );
+  box-shadow: 0 0 16px #dfb031;
+  animation: blade-cut 0.5s ease-out both;
+}
+.assassination .strike-two {
+  transform: translate(-50%, -50%) rotate(32deg);
+  animation-delay: 0.07s;
+}
+.assassination .shock-ring {
+  display: block;
+  width: 150px;
+  height: 100px;
+  border: 3px solid #a96811;
+  border-radius: 50%;
+  animation: metal-impact 0.6s ease-out both;
+}
+@keyframes blade-cut {
+  0% {
+    opacity: 0;
+    scale: 0.1 1;
+  }
+  18% {
+    opacity: 1;
+    scale: 1 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.3 0.1;
+  }
+}
+@keyframes metal-impact {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.7);
+  }
+}
+@keyframes royal-bloom {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35) rotate(0);
+  }
+  25% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.4) rotate(35deg);
+  }
+}
+@keyframes emblem-hit {
+  0% {
+    opacity: 0;
+    scale: 0.6;
+  }
+  25% {
+    opacity: 0.55;
+    scale: 1.1;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.4;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-effect {
+    display: none !important;
+  }
+  .reversal-hold .stage-card {
+    filter: none;
+    box-shadow: none;
+  }
+}
+
+.sweep-perfect .impact {
+  border: 2px solid #b5842b;
+  background: #fff6d7f5;
+  box-shadow: 0 0 30px #e1b54360;
+}
+.sweep-perfect .orbit {
+  animation: final-radiance 0.85s ease-out both;
+}
+.sweep-swept .impact {
+  border-style: double;
+  border-width: 3px;
+}
+.sweep-mirror .impact {
+  background: linear-gradient(90deg, #e2f1f3f5, #fffef5f5, #e2f1f3f5);
+  border: 3px double #7b9fa2;
+}
+.sweep-mirror .orbit {
+  animation: final-radiance 0.85s ease-out both;
+  border-style: double;
+}
+@keyframes final-radiance {
+  from {
+    opacity: 0.2;
+    scale: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.5;
+    scale: 1.15;
+  }
+}
+
+@media (max-height: 600px) and (max-width: 699px) {
+  #rules .dialog-heading h2 {
+    font-size: 15px;
+    letter-spacing: 0;
+  }
+  #rules .rule-example > span {
+    padding: 4px 12px;
+    font-size: 22px;
+  }
+  #rules .campaign-rule {
+    margin-bottom: 6px;
+    line-height: 1.6;
+  }
+  #rules .fair-note {
+    margin: 6px 0;
+    padding: 6px 0;
+    line-height: 1.6;
+  }
+  #rules .quick-rules {
+    margin: 7px 0;
+  }
+}
