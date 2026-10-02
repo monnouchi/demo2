@@ -158,3 +158,39 @@ test("recap distinguishes round wins from weighted match points", () => {
     lateScores: [0, 0],
   });
 });
+
+test("one win, one loss, three draws: scoring follows round stakes", () => {
+  const permutations = (a) =>
+    a.length
+      ? a.flatMap((n, i) =>
+          permutations(a.filter((_, j) => i !== j)).map((rest) => [n, ...rest]),
+        )
+      : [[]];
+  let checked = 0;
+  const outcomes = new Set();
+  for (const p of permutations(CARDS))
+    for (const c of permutations(CARDS)) {
+      const results = p.map((n, i) => compare(n, c[i]));
+      if (
+        results.filter((n) => n === 1).length !== 1 ||
+        results.filter((n) => n === -1).length !== 1 ||
+        results.filter((n) => n === 0).length !== 3
+      )
+        continue;
+      let state = initialState();
+      p.forEach((n, i) => {
+        state = resolveRound(state, n, c[i]);
+      });
+      const expected = [
+        STAKES[results.indexOf(1)],
+        STAKES[results.indexOf(-1)],
+      ];
+      assert.deepEqual(state.scores, expected);
+      assert.deepEqual(matchSummary(state).counts, [1, 1, 3]);
+      assert.equal(matchResult(state), Math.sign(expected[0] - expected[1]));
+      outcomes.add(expected.join(":"));
+      checked++;
+    }
+  assert.equal(checked, 1200);
+  assert.deepEqual([...outcomes].sort(), ["1:1", "1:2", "2:1", "2:2"]);
+});

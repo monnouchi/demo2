@@ -1420,3 +1420,417 @@ footer {
     --card-height: 100px;
   }
 }
+
+/* First decision: one visible set of cards and one next action. */
+.intro-rule {
+  display: none;
+}
+.app.intro .scoreboard,
+.app.intro .round-track,
+.app.intro .opponent,
+.app.intro .arena,
+.app.intro .history-zone,
+.app.intro footer {
+  display: none;
+}
+.app.intro {
+  gap: 24px;
+}
+.app.intro .message {
+  margin-top: clamp(12px, 6svh, 50px);
+}
+.app.intro .message h1 {
+  font-size: 20px;
+}
+.app.intro .message p {
+  font-size: 12px;
+}
+.app.intro .player-zone {
+  margin-top: 8px;
+  --card-height: 112px;
+}
+.app.intro #hand-hint,
+.app.intro .match-meta .eyebrow {
+  display: none;
+}
+.app.intro #hand-title {
+  color: var(--mint);
+  font-size: 12px;
+  font-weight: 600;
+}
+.app.intro .playing-card:not(.selected) {
+  border-color: #a1f6d699;
+  box-shadow: 0 0 16px #a1f6d618;
+}
+.app.intro .intro-rule {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+}
+.recap-score {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 11px;
+}
+.recap-score strong {
+  font-size: 23px;
+  font-weight: 500;
+}
+.recap-score > span {
+  color: var(--muted);
+  margin: 0 5px;
+}
+.recap > small {
+  color: var(--muted);
+  font-size: 9px;
+}
+.history.score-history small {
+  display: block;
+  font-size: 8px;
+}
+@media (max-height: 600px) and (max-width: 699px) {
+  .app.intro {
+    gap: 12px;
+  }
+  .app.intro .message {
+    margin-top: 8px;
+  }
+  .app.intro .message h1 {
+    font-size: 18px;
+  }
+  .app.intro .player-zone {
+    --card-height: 100px;
+  }
+  .recap-score strong {
+    font-size: 20px;
+  }
+  .history.score-history li {
+    padding: 2px;
+  }
+}
+
+.app.choosing .arena {
+  display: none;
+}
+.app.choosing:not(.intro) .player-zone {
+  --card-height: 112px;
+}
+.playing-card.selected .card-sigil {
+  opacity: 0.12;
+}
+.confirm-note {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 10px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: #effff8;
+  pointer-events: none;
+}
+.app.choosing .primary:not(:disabled) {
+  background: var(--gold);
+  color: #302718;
+  box-shadow: 0 0 20px #eed19925;
+}
+@media (max-height: 600px) and (max-width: 699px) {
+  .confirm-note {
+    font-size: 9px;
+  }
+  .app.choosing:not(.intro) .player-zone {
+    --card-height: 100px;
+  }
+}
+/* Daylight palette: ink for reading, emerald for actions, amber for the reveal. */
+:root {
+  color-scheme: light;
+  --bg: #f6f5ee;
+  --panel: #fffdf8;
+  --text: #20352f;
+  --muted: #53675e;
+  --mint: #176f53;
+  --coral: #ac3f51;
+  --gold: #9a6416;
+}
+body:before {
+  background:
+    radial-gradient(ellipse at 15% 20%, #caeddc80, transparent 60%),
+    radial-gradient(ellipse at 90% 65%, #ffe2ad60, transparent 60%);
+}
+.app {
+  background: transparent;
+}
+.brand-icon {
+  text-shadow: none;
+}
+.icon-button {
+  background: #fffdf8;
+  border-color: #b8c9bd;
+  color: #27493a;
+}
+.score-divider {
+  color: #60766a;
+}
+.round-track {
+  color: #596c61;
+}
+.round-track i {
+  background: #a1b7a7;
+}
+.round-track .complete i {
+  background: #708e7b;
+}
+.section-label,
+.section-label small {
+  color: #52685b;
+}
+.mini-card {
+  background: #fff4f0;
+  color: #893b4a;
+  border-color: #c38d95;
+}
+.mini-card.used {
+  opacity: 0.4;
+}
+.orbit {
+  border-color: #689f7f30;
+}
+.arena-cross {
+  background: linear-gradient(90deg, transparent, #45856435, transparent);
+}
+.stage-card {
+  background: linear-gradient(145deg, #fafff5, #d5eddb);
+  border-color: #49866b;
+  box-shadow: 0 10px 20px #304b321a;
+}
+.cpu-side .stage-card {
+  background: linear-gradient(145deg, #fff9f4, #f3dbe0);
+  border-color: #b16e80;
+}
+.back-pattern {
+  border-color: #3b88633b;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0 6px,
+    #2875560d 6px 7px
+  );
+}
+.back-pattern:before,
+.back-pattern:after {
+  border-color: #36876a66;
+}
+.cpu-side .back-pattern:before,
+.cpu-side .back-pattern:after {
+  border-color: #a05a7960;
+}
+.versus {
+  color: #4b6c5b;
+}
+.stage-card.face {
+  color: #195c44;
+}
+.cpu-side .stage-card.face {
+  color: #953b55;
+}
+.playing-card {
+  background: linear-gradient(150deg, #fffef9, #e1eedf);
+  color: #23553c;
+  border-color: #579372;
+  box-shadow: 0 5px 12px #2b563321;
+}
+.playing-card:after,
+.stage-card:after {
+  border-color: #28755424;
+}
+.playing-card.selected {
+  background: linear-gradient(145deg, #e0ffdb, #bde7c4);
+  border-color: #116841;
+  box-shadow:
+    0 0 0 2px #176f53,
+    0 8px 18px #176f5328;
+}
+.playing-card.used {
+  opacity: 0.35;
+}
+.confirm-note {
+  color: #114e32;
+}
+.special-note {
+  background: #f3c97f;
+  color: #493114;
+}
+.primary {
+  background: #176f53;
+  color: #fffef8;
+  box-shadow: 0 6px 15px #176f5320;
+}
+.primary:disabled {
+  background: #dde7dc;
+  color: #4c6757;
+}
+.app.choosing .primary:not(:disabled) {
+  background: #efbc5b;
+  color: #3c2a0f;
+  box-shadow: 0 5px 15px #9a641625;
+}
+.app.intro .playing-card:not(.selected) {
+  border-color: #3f8764;
+  box-shadow: 0 5px 14px #176f5320;
+}
+.history li {
+  background: #ffffff85;
+  border-color: #a7b9ac;
+}
+.history small,
+.history b,
+.history em {
+  color: #4e6658;
+}
+.history .won {
+  border-color: #176f53;
+}
+.history .lost {
+  border-color: #ac3f51;
+}
+.message[data-result="draw"] > span {
+  color: #52675c;
+}
+.recap {
+  background: linear-gradient(110deg, #e0eddf, #fffdf4);
+  border-color: #96b49d;
+}
+.arena:not(.finished) .round-winner {
+  border-color: #b57913;
+  box-shadow: 0 0 22px #d5a12b66;
+}
+.arena:not(.finished) .round-loser {
+  filter: none;
+  opacity: 0.55;
+}
+.impact {
+  color: #155b3e;
+  text-shadow:
+    0 2px 2px #fffdf9,
+    0 0 15px #fff;
+}
+.clash:after {
+  background: radial-gradient(ellipse, #79d7a65c, transparent 65%);
+}
+.reversal:after {
+  background: radial-gradient(ellipse, #efb74285, transparent 70%);
+}
+.reversal .impact {
+  color: #8d4e04;
+  text-shadow:
+    0 2px 2px #fffaf0,
+    0 0 18px #ffde82;
+}
+.loss .impact {
+  color: #a12f4b;
+}
+.finished .impact {
+  background: #fffcf2f2;
+  color: #196047;
+  border-color: #679575;
+  text-shadow: none;
+}
+.match-loss .impact {
+  color: #a12f4b;
+  border-color: #be8895;
+  text-shadow: none;
+}
+.match-draw .impact {
+  color: #4a6057;
+  border-color: #98aaa0;
+}
+footer {
+  color: #5c7062;
+}
+dialog {
+  background: #fffdf5;
+  border-color: #87a68d;
+  box-shadow: 0 30px 80px #254c3540;
+}
+dialog::backdrop {
+  background: #28433775;
+}
+dialog ul {
+  color: #354f40;
+}
+.fair-note {
+  border-color: #bacdba;
+}
+@media (min-width: 700px) {
+  .app {
+    background: #fffdf9c9;
+    border-color: #b8cbb9;
+    box-shadow: 0 20px 65px #355b3324;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clash .impact {
+    background: #fffdf5ed;
+  }
+}
+
+.match-meta {
+  justify-content: flex-end;
+}
+.match-meta .eyebrow {
+  display: none;
+}
+.quick-rules {
+  padding-left: 20px;
+  margin: 12px 0;
+  color: var(--text);
+}
+.quick-rules li {
+  margin: 12px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.quick-rules strong {
+  color: #176f53;
+}
+.dialog-heading h2 {
+  font-size: 23px;
+  margin: 0;
+  line-height: 1.3;
+}
+#rules .rule-example {
+  margin: 12px 0;
+}
+#rules .fair-note {
+  font-size: 10px;
+  padding: 9px 0;
+}
+@media (max-height: 600px) {
+  #rules {
+    padding: 18px;
+  }
+  .quick-rules li {
+    margin: 9px 0;
+  }
+}
+
+.match-meta {
+  display: none;
+}
+.scoreboard strong:after {
+  content: "点";
+  font:
+    11px -apple-system,
+    sans-serif;
+  margin-left: 3px;
+}
+.locked {
+  color: var(--muted);
+}
+
+.app.choosing #action:disabled {
+  visibility: hidden;
+}

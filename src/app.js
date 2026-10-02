@@ -14,6 +14,7 @@ let state,
   reveal,
   selected = null,
   phase,
+  selectedAt = 0,
   audio,
   soundOn = false;
 try {
@@ -95,7 +96,7 @@ function message(kicker, title, detail) {
 }
 function action(label, disabled = false) {
   $("action").innerHTML =
-    `<span>${label}</span><span aria-hidden="true">↗</span>`;
+    `<span>${label}</span><span aria-hidden="true">→</span>`;
   $("action").disabled = disabled;
 }
 function setStage(id, n, extra = "") {
@@ -104,8 +105,7 @@ function setStage(id, n, extra = "") {
   el.innerHTML = n ? face(n) : back;
 }
 function renderPublic() {
-  document.querySelector(".locked").textContent =
-    phase === "choose" ? "◆ 選択済み" : "◆ 公開済み";
+  document.querySelector(".locked").textContent = "薄い札は使用済み";
   $("player-score").textContent = state.scores[0];
   $("cpu-score").textContent = state.scores[1];
   $("cpu-hand").innerHTML = CARDS.map(
@@ -115,7 +115,7 @@ function renderPublic() {
   $("hand-count").textContent = `${state.player.length} CARDS`;
   $("round-track").innerHTML = STAKES.map(
     (points, i) =>
-      `<span class="${i === (phase === "choose" ? state.history.length : state.history.length - 1) ? "current" : ""} ${i < state.history.length ? "complete" : ""}"><i></i>${points} PT</span>`,
+      `<span class="${i === (phase === "choose" ? state.history.length : state.history.length - 1) ? "current" : ""} ${i < state.history.length ? "complete" : ""}"><i></i>${points}点</span>`,
   ).join("");
   $("history").innerHTML = STAKES.map((_, i) => {
     const r = state.history[i];
@@ -124,42 +124,48 @@ function renderPublic() {
 }
 function renderHand() {
   const finished = phase === "finished";
-  $("hand-title").textContent = finished ? "5戦の振り返り" : "あなたの手札";
+  $("hand-title").textContent = finished ? "合計点の内訳" : "あなたの手札";
   $("hand-count").textContent = finished
-    ? "MATCH RECAP"
-    : `${state.player.length} CARDS`;
+    ? ""
+    : state.history.length === 0
+      ? ""
+      : `${state.player.length} CARDS`;
   if (finished) {
-    const { counts, lateScores } = matchSummary(state);
-    const playerReversal = state.history.some(
-      (round) => round.reversal && round.result > 0,
+    const { counts } = matchSummary(state);
+    const sums = [1, -1].map(
+      (result) =>
+        state.history
+          .filter((r) => r.result === result)
+          .map((r) => r.points)
+          .join(" + ") || "0",
     );
-    const cpuReversal = state.history.some(
-      (round) => round.reversal && round.result < 0,
-    );
-    const note =
-      cpuReversal && matchResult(state) < 0
-        ? "次は、相手の1が残っているか読もう。"
-        : playerReversal
-          ? "1の一撃、決まった。次はどう切る？"
-          : lateScores[0] < lateScores[1]
-            ? "次は、後半の2点を狙おう。"
-            : "次は、出す順を変えてみよう。";
-    $("hand-hint").textContent = "合計得点で決着";
+    $("hand-hint").textContent = "勝ち数ではなく合計点";
     $("hand").innerHTML =
-      `<div class="recap"><div class="recap-stats">${counts.map((n, i) => `<span>${n}<small>${["勝", "敗", "分"][i]}</small></span>`).join("")}</div><p>後半の得点　YOU ${lateScores[0]} : ${lateScores[1]} CPU</p><small>${note}</small></div>`;
+      `<div class="recap"><div class="recap-score">あなた <strong>${state.scores[0]}点</strong><span>対</span>CPU <strong>${state.scores[1]}点</strong></div><p>あなた ${sums[0]} = ${state.scores[0]}点 ／ CPU ${sums[1]} = ${state.scores[1]}点</p><small>参考：${counts[0]}勝 ${counts[1]}敗 ${counts[2]}分</small></div>`;
+    $("history-title").textContent = "各戦の得点";
+    $("history-key").textContent = "あなた / CPU";
+    $("history").classList.add("score-history");
+    $("history").innerHTML = state.history
+      .map(
+        (r, i) =>
+          `<li class="${r.result > 0 ? "won" : r.result < 0 ? "lost" : "tied"}"><small>第${i + 1}戦・${r.points}点</small><span>${r.result > 0 ? r.points : 0} <em>/</em> ${r.result < 0 ? r.points : 0}</span><b>${r.result > 0 ? "あなた得点" : r.result < 0 ? "CPU得点" : "双方0点"}</b></li>`,
+      )
+      .join("");
     return;
   }
   $("hand-hint").textContent =
     phase === "choose"
       ? state.player.length === 1
         ? "最後の一枚を選択"
-        : "タップで選択"
+        : selected !== null
+          ? "同じ札をもう一度タップ ↓"
+          : "タップで選択"
       : phase === "between"
-        ? "次の戦へ進もう"
+        ? "下のボタンで次の勝負へ ↓"
         : "公開中 · 操作ロック";
   $("hand").innerHTML = CARDS.map(
     (n) =>
-      `<button class="playing-card ${state.player.includes(n) ? "" : "used"} ${selected === n ? "selected" : ""}" data-card="${n}" aria-label="${n} ${names[n]}${n === 1 ? "、5に勝つ" : ""}${!state.player.includes(n) ? " 使用済み" : ""}" aria-pressed="${selected === n}" ${phase !== "choose" || !state.player.includes(n) ? "disabled" : ""}>${face(n)}${n === 1 ? '<span class="special-note">5に勝つ</span>' : ""}</button>`,
+      `<button class="playing-card ${state.player.includes(n) ? "" : "used"} ${selected === n ? "selected" : ""}" data-card="${n}" aria-label="${n} ${names[n]}${n === 1 ? "、5に勝つ" : ""}${!state.player.includes(n) ? " 使用済み" : ""}${selected === n ? "、選択中。もう一度タップで勝負" : ""}" aria-pressed="${selected === n}" ${phase !== "choose" || !state.player.includes(n) ? "disabled" : ""}>${face(n)}${selected === n ? '<span class="confirm-note">もう一度<br>タップで勝負</span>' : ""}${n === 1 ? '<span class="special-note">5に勝つ</span>' : ""}</button>`,
   ).join("");
   $("hand")
     .querySelectorAll("button")
@@ -167,7 +173,14 @@ function renderHand() {
       (button) =>
         (button.onclick = () => {
           if (phase !== "choose") return;
-          selected = Number(button.dataset.card);
+          const tapped = Number(button.dataset.card);
+          if (selected === tapped) {
+            // Ignore a double-tap / duplicate click from the selection gesture.
+            if (performance.now() - selectedAt >= 450) battle();
+            return;
+          }
+          selected = tapped;
+          selectedAt = performance.now();
           audioReady();
           cue("select");
           renderHand();
@@ -175,11 +188,11 @@ function renderHand() {
             .querySelector(`[data-card="${selected}"]`)
             .focus({ preventScroll: true });
           setStage("player-stage", null, "chosen");
-          action(`${names[selected]} ${selected} を伏せて勝負`);
+          action(`この札で勝負 · ${names[selected]} ${selected}`);
           message(
-            "READY TO REVEAL",
-            `${names[selected]}を、切る。`,
-            "別の札に変更できます。勝負で同時公開。",
+            "② 選んだ札をもう一度タップ",
+            `選択済み：${names[selected]} ${selected}`,
+            "同じ札をもう一度タップで勝負。別の札なら選び直し。",
           );
         }),
     );
@@ -188,6 +201,13 @@ function beginRound() {
   selected = null;
   reveal = prepareRound(state); // CPU commitment occurs before player input becomes available.
   phase = "choose";
+  document.querySelector(".app").classList.add("choosing");
+  document
+    .querySelector(".app")
+    .classList.toggle("intro", state.history.length === 0);
+  $("history-title").textContent = "公開された札";
+  $("history-key").textContent = "あなた / CPU";
+  $("history").classList.remove("score-history");
   $("arena").className = "arena";
   $("player-label").textContent = "YOU";
   $("cpu-label").textContent = "CPU";
@@ -201,19 +221,9 @@ function beginRound() {
   $("stake").textContent =
     `${STAKES[state.history.length]} POINT${STAKES[state.history.length] > 1 ? "S" : ""}`;
   message(
-    state.history.length === 4
-      ? "FINAL ROUND"
-      : state.history.length === 3
-        ? "DOUBLE STAKES"
-        : "THE CHOICE IS YOURS",
-    state.history.length === 4
-      ? "最後の一枚で、決着。"
-      : state.history.length === 3
-        ? "ここから、一勝が2点。"
-        : "その一枚が、流れを変える。",
-    state.history.length
-      ? "公開された札を見て、相手の次の一手を読む。"
-      : "1は5に勝つ。切り札の使いどきを読もう。",
+    `第${state.history.length + 1}戦 · 勝つと${STAKES[state.history.length]}点`,
+    "下のカードを1枚タップ。",
+    "選んだ札をもう一度タップすると勝負します。",
   );
   renderPublic();
   renderHand();
@@ -236,7 +246,7 @@ function burst(reversal, win) {
     p.style.setProperty("--y", `${Math.sin(angle) * distance}px`);
     p.style.setProperty("--rotation", `${i * 31}deg`);
     p.style.setProperty("--delay", `${Math.random() * 0.12}s`);
-    p.style.background = reversal ? "#ffe0a0" : win ? "#9effe2" : "#ffb5b0";
+    p.style.background = reversal ? "#b97812" : win ? "#168357" : "#c83f61";
     fragment.append(p);
   }
   $("fx").replaceChildren(fragment);
@@ -244,13 +254,18 @@ function burst(reversal, win) {
 async function battle() {
   if (phase !== "choose" || selected === null) return;
   phase = "animating";
+  document.querySelector(".app").classList.remove("intro", "choosing");
   audioReady();
   renderHand();
-  action("運命の、一瞬。", true);
+  action("公開中…", true);
   $("help").disabled = true;
   const next = reveal(selected);
   const round = next.history.at(-1);
-  message("LOCKED IN", "せーの。", "互いの札は、もう変えられない。");
+  message(
+    "両者の札を確定",
+    "同時に公開します。",
+    "結果が出るまでお待ちください。",
+  );
   $("arena").classList.add("charging");
   cue("charge");
   await wait(reduced.matches ? 150 : 600);
@@ -296,25 +311,15 @@ async function battle() {
   renderPublic();
   renderHand();
   message(
-    round.reversal
-      ? "THE CROWN FALLS"
-      : round.result > 0
-        ? "ROUND WON"
-        : round.result < 0
-          ? "ROUND LOST"
-          : "DRAW",
-    round.reversal
-      ? round.result > 0
-        ? "刺客で、王冠を奪った。"
-        : "王冠を、刺客に奪われた。"
-      : round.result > 0
-        ? "読みが、届いた。"
-        : round.result < 0
-          ? "次の一手で、取り返す。"
-          : "同じ読み。その先へ。",
+    `第${state.history.length}戦の結果`,
     round.result === 0
-      ? "同じ札は0点。得点の持ち越しなし。"
-      : `${round.result > 0 ? "あなた" : "CPU"}に ${round.points}点。${round.reversal ? "1は5に勝つ。" : `${Math.max(round.playerCard, round.cpuCard)}が${Math.min(round.playerCard, round.cpuCard)}に勝利。`}`,
+      ? "同じ札なので、双方0点。"
+      : `${round.result > 0 ? "あなた" : "CPU"}が${round.points}点を獲得。`,
+    round.reversal
+      ? "1は5に勝ちます。"
+      : round.result === 0
+        ? "得点の持ち越しはありません。"
+        : `${Math.max(round.playerCard, round.cpuCard)}が${Math.min(round.playerCard, round.cpuCard)}に勝ちました。`,
   );
   await wait(reduced.matches ? 150 : 620);
   if (state.history.length === 5) {
@@ -330,22 +335,16 @@ async function battle() {
     $("impact").textContent =
       result > 0 ? "YOU WIN" : result < 0 ? "CPU WINS" : "DRAW";
     message(
-      "DUEL COMPLETE",
-      result > 0
-        ? "最後に、笑うのはあなた。"
-        : result < 0
-          ? "次は、その一枚で勝つ。"
-          : "互角の読み合い。",
-      `${state.scores[0]} 対 ${state.scores[1]} ─ ${result > 0 ? "あなたの勝利" : result < 0 ? "CPUの勝利" : "引き分け"}。`,
+      "合計点で決着",
+      `${state.scores[0]} 対 ${state.scores[1]}点 ─ ${result > 0 ? "あなたの勝利" : result < 0 ? "CPUの勝利" : "引き分け"}`,
+      "第1〜3戦は1点、第4・5戦は2点。同札は0点。",
     );
     cue(result > 0 ? "victory" : result < 0 ? "defeat" : "draw");
     if (result !== 0) burst(result > 0, result > 0);
     action("もう一度、勝負する");
   } else {
     phase = "between";
-    action(
-      `第${state.history.length + 1}戦へ${state.history.length === 3 ? " · ここから2点" : ""}`,
-    );
+    action(`次の勝負を始める · 第${state.history.length + 1}戦`);
   }
   renderHand();
   $("help").disabled = false;
@@ -355,7 +354,10 @@ $("action").onclick = () => {
   else if (phase === "between") beginRound();
   else if (phase === "finished") start();
 };
-$("help").onclick = () => $("rules").showModal();
+$("help").onclick = () => {
+  $("ready").innerHTML = "閉じて戻る <span>→</span>";
+  $("rules").showModal();
+};
 $("close-rules").onclick = $("ready").onclick = () => $("rules").close();
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && audio) audio.suspend().catch(() => {});
@@ -363,3 +365,4 @@ document.addEventListener("visibilitychange", () => {
 });
 updateSound();
 start();
+$("rules").showModal();

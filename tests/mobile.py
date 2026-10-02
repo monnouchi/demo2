@@ -22,6 +22,8 @@ with sync_playwright() as p:
         page = browser.new_page(viewport={'width': width, 'height': height}, is_mobile=True, has_touch=True, device_scale_factor=2)
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(URL)
+        assert page.locator('#rules').evaluate('(e) => e.open')
+        page.locator('#ready').click()
         page.wait_for_selector('.playing-card')
         geometry = page.evaluate('''() => ({width: innerWidth, height: innerHeight,
           scrollWidth: document.documentElement.scrollWidth, scrollHeight: document.documentElement.scrollHeight,
@@ -34,6 +36,8 @@ with sync_playwright() as p:
         assert geometry['historyBottom'] <= height, geometry
         assert geometry['cardWidth'] >= 44, geometry
         assert page.locator('#action').is_disabled()
+        assert not page.locator('#arena').is_visible()
+        assert not page.locator('.opponent').is_visible()
         page.locator('#help').tap()
         assert page.locator('#rules').evaluate('(e) => e.open')
         page.locator('#ready').tap()
@@ -43,9 +47,13 @@ with sync_playwright() as p:
         page.locator('[data-card="4"]').tap()
         assert page.locator('[data-card="1"]').get_attribute('aria-pressed') == 'false'
         assert page.locator('[data-card="4"]').get_attribute('aria-pressed') == 'true'
+        box=page.locator('#action').bounding_box()
+        assert box['y'] + box['height'] <= height
+        assert page.locator('.confirm-note').is_visible()
         page.locator('#sound').tap()
         assert page.locator('#sound').get_attribute('aria-pressed') == 'true'
         page.reload()
+        page.locator('#ready').click()
         assert page.locator('#sound').get_attribute('aria-pressed') == 'true'
         page.locator('#sound').tap()
         assert page.locator('#sound').get_attribute('aria-pressed') == 'false'
@@ -66,12 +74,23 @@ with sync_playwright() as p:
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.add_init_script(f'Math.random = () => {random_value};')
         page.goto(URL)
+        assert page.locator('#rules').evaluate('(e) => e.open')
+        page.locator('#ready').click()
         if name == 'victory':
             page.locator('#sound').tap()
         for index, card in enumerate(cards):
             page.locator(f'[data-card="{card}"]').tap()
+            assert not page.locator('#arena').is_visible()
+            box=page.locator('#action').bounding_box()
+            assert box['y'] + box['height'] <= match_viewport['height']
             # Same-event-loop click spam tests the synchronous lock.
-            page.locator('#action').evaluate('(e) => { for(let i=0;i<12;i++) e.click(); }')
+            if index % 2 == 0:
+                page.locator(f'[data-card="{card}"]').evaluate('(e) => { for(let i=0;i<12;i++) e.click(); }')
+                assert not page.locator('#arena').is_visible(), 'rapid duplicate taps must not commit'
+                page.wait_for_timeout(470)
+                page.locator(f'[data-card="{card}"]').tap()
+            else:
+                page.locator('#action').evaluate('(e) => { for(let i=0;i<12;i++) e.click(); }')
             assert page.locator('#action').is_disabled()
             assert page.locator('.playing-card:not([disabled])').count() == 0
             assert page.locator('#help').is_disabled()
@@ -89,18 +108,18 @@ with sync_playwright() as p:
             assert page.evaluate('scrollX === 0 && scrollY === 0')
             assert page.locator('#action').bounding_box()['y'] + page.locator('#action').bounding_box()['height'] <= match_viewport['height']
             if index < 4:
-                assert page.locator('#hand-hint').inner_text() == '次の戦へ進もう'
+                assert '次の勝負へ' in page.locator('#hand-hint').inner_text()
                 page.locator('#action').tap()
                 assert page.locator('#action').is_disabled()
-        assert expected in page.locator('#message-detail').inner_text(), page.locator('#message-detail').inner_text()
+        assert expected in page.locator('#message-title').inner_text(), page.locator('#message-title').inner_text()
         assert 'finished' in page.locator('#arena').get_attribute('class')
         assert page.locator('.recap').is_visible()
-        assert page.locator('#hand-hint').inner_text() == '合計得点で決着'
-        assert page.locator('#hand-title').inner_text() == '5戦の振り返り'
+        assert page.locator('#hand-hint').inner_text() == '勝ち数ではなく合計点'
+        assert page.locator('#hand-title').inner_text() == '合計点の内訳'
         assert page.locator('.playing-card').count() == 0
         assert page.locator('#history').bounding_box()['y'] + page.locator('#history').bounding_box()['height'] <= match_viewport['height']
         if name == 'defeat':
-            assert '相手の1' in page.locator('.recap').inner_text()
+            assert 'あなた 1 = 1点 ／ CPU 2 = 2点' in page.locator('.recap').inner_text()
         expected_class = {'victory':'match-win','defeat':'match-loss','draw':'match-draw'}[name]
         assert expected_class in page.locator('#arena').get_attribute('class')
         assert page.locator('.brand').evaluate('(e) => e.tagName') == 'DIV'
@@ -125,6 +144,8 @@ with sync_playwright() as p:
     for width, height in [(390, 844), (390, 664)]:
         page = browser.new_page(viewport={'width': width, 'height': height}, is_mobile=True, has_touch=True)
         page.goto(URL)
+        assert page.locator('#rules').evaluate('(e) => e.open')
+        page.locator('#ready').click()
         page.add_style_tag(content='.app { --safe-top: 47px; --safe-bottom: 34px; }')
         assert page.locator('.topbar').bounding_box()['y'] >= 47
         box = page.locator('#action').bounding_box()
@@ -137,6 +158,7 @@ with sync_playwright() as p:
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.add_init_script("Object.defineProperty(window, 'localStorage', { get() { throw new Error('storage blocked'); } });")
     page.goto(URL)
+    page.locator('#ready').click()
     page.locator('#help').click()
     page.keyboard.press('Escape')
     assert not page.locator('#rules').evaluate('(e) => e.open')

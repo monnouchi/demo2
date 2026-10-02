@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#090e1b" />
+    <meta name="theme-color" content="#f6f5ee" />
     <meta
       name="description"
       content="5枚、5回、一瞬の逆転。CPUと遊ぶ小さなカードデュエル。"
@@ -39,8 +39,7 @@
         </div>
       </header>
       <section class="match-meta">
-        <span class="eyebrow">FIVE CARDS. ONE DUEL.</span
-        ><span id="round-label">ROUND 01 / 05</span>
+        <span class="eyebrow"></span><span id="round-label">ROUND 01 / 05</span>
       </section>
       <section class="scoreboard" aria-label="得点">
         <div>
@@ -84,9 +83,9 @@
         aria-live="polite"
         aria-atomic="true"
       >
-        <span id="message-kicker">THE CHOICE IS YOURS</span>
-        <h1 id="message-title">その一枚が、流れを変える。</h1>
-        <p id="message-detail">1は5に勝つ。切り札の使いどきを読もう。</p>
+        <span id="message-kicker">カードを選ぶ</span>
+        <h1 id="message-title">下のカードを1枚タップ。</h1>
+        <p id="message-detail">選んだ札をもう一度タップすると勝負します。</p>
       </section>
       <section class="player-zone">
         <div class="section-label">
@@ -100,18 +99,19 @@
       <button id="action" class="primary" disabled>
         <span>一枚選んでください</span><span aria-hidden="true">↗</span>
       </button>
+
       <section class="history-zone">
         <div class="section-label">
-          <span>公開された札</span><span>YOU / CPU</span>
+          <span id="history-title">公開された札</span
+          ><span id="history-key">あなた / CPU</span>
         </div>
         <ol id="history" class="history"></ol>
       </section>
-      <footer>5枚の読み合い。最後まで、わからない。</footer>
     </main>
-    <dialog id="rules">
+    <dialog id="rules" aria-labelledby="rules-title">
       <div class="dialog-heading">
-        <span class="eyebrow">HOW TO DUEL</span
-        ><button
+        <h2 id="rules-title">遊び方</h2>
+        <button
           id="close-rules"
           class="icon-button"
           aria-label="ルールを閉じる"
@@ -119,29 +119,28 @@
           ×
         </button>
       </div>
-      <h2>切り札は、<br />いつ切ってもいい。</h2>
-      <p>
-        お互いに
-        <b>1〜5の同じ5枚</b>。一枚ずつ伏せて、同時に公開。使った札は戻りません。
-      </p>
       <div class="rule-example">
         <span>1</span><strong>›</strong><span>5</span
-        ><small>最弱が、最強を倒す。</small>
+        ><small>1だけは5に勝つ</small>
       </div>
-      <ul>
-        <li>大きい数字が勝利。ただし<b>1だけは5に勝つ</b>。</li>
+      <ol class="quick-rules">
         <li>
-          1〜3戦目は<b>1点</b>、4〜5戦目は<b>2点</b>。後半のための温存も作戦。
+          <b>同じ1〜5を、一度ずつ使う。</b
+          ><br />大きい数字が勝利。同じ数字は0点。
         </li>
-        <li>同じ札なら双方0点。点の持ち越しはありません。</li>
-        <li>5戦の合計得点で決着。同点なら引き分け。</li>
-      </ul>
-      <p class="fair-note">
-        CPUはあなたが選ぶ前に札を確定します。公開済みの札から残りを読み、温存も考えます。
-      </p>
-      <button id="ready" class="primary">
-        わかった、勝負しよう <span>↗</span>
-      </button>
+        <li>
+          <b>5戦の合計点で決着。</b><br />第1〜3戦は1点。<strong
+            >第4・5戦は2点。</strong
+          ><br />合計が同点なら引き分け。
+        </li>
+        <li>
+          <b>札をタップして選ぶ。</b><br /><strong
+            >同じ札をもう一度タップで勝負。</strong
+          ><br />別の札をタップすれば選び直せます。
+        </li>
+      </ol>
+      <p class="fair-note">CPUはあなたが選ぶ前に札を確定します。</p>
+      <button id="ready" class="primary" autofocus>遊ぶ <span>→</span></button>
     </dialog>
     <script type="module" src="./src/app.js"></script>
   </body>
