@@ -38,7 +38,7 @@ with sync_playwright() as p:
             assert 'celebrate' not in page.locator('#completion').get_attribute('class')
             assert not page.locator('#rules').evaluate('(e)=>e.open')
             assert page.evaluate('JSON.parse(localStorage.getItem("last-trump-campaign"))')==saved
-            assert f'♛ × {saved["clears"]}'==page.locator('#completion-count').inner_text()
+            assert f'金メダル × {saved["clears"]}'==page.locator('#completion-count').inner_text()
             assert 'HTML・JS・CSS一致' in page.locator('#build-version').inner_text()
             if attempt<2:page.reload()
         assert not stale
@@ -65,7 +65,8 @@ with sync_playwright() as p:
         assert page.locator('.completion-crown').evaluate('(e)=>getComputedStyle(e).animationName')==('none' if reduced else 'crown-arrives')
         assert page.evaluate('scrollY===0 && document.documentElement.scrollHeight<=innerHeight')
         saved=page.evaluate('JSON.parse(localStorage.getItem("last-trump-campaign"))')
-        assert saved=={'version':1,'stage':4,'wins':5,'losses':1,'draws':2,'clears':1,'completed':True}
+        assert saved['version']==2 and saved['stage']==4 and saved['wins']==5 and saved['losses']==1 and saved['draws']==2 and saved['clears']==1 and saved['completed']
+        assert saved['medals']=={'gold':1,'silver':0,'bronze':0}
         for _ in range(2):page.reload();assert page.locator('#completion').is_visible()
         assert page.evaluate('JSON.parse(localStorage.getItem("last-trump-campaign"))')==saved
         results.append({'fresh_champion':True,'reduced_motion':reduced,'checks':'ordinary result hidden; finale entered once; two reloads preserve completion and all scores'})

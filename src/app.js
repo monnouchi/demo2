@@ -11,6 +11,7 @@ import {
   readCampaign,
   finishCampaignMatch,
   nextCircuit,
+  resumeCampaign,
 } from "./game.js?v=2026.10.03-2";
 const $ = (id) => document.getElementById(id);
 const RELEASE = "2026.10.03-2";
@@ -53,6 +54,178 @@ applyTheme();
 
 const names = { 1: "刺客", 2: "双刃", 3: "騎士", 4: "女王", 5: "王冠" };
 const marks = { 1: "✧", 2: "Ⅱ", 3: "♞", 4: "✥", 5: "♛" };
+const characters = ["ソラ", "リン", "ガイ", "レイ", "アルク"];
+function avatarSvg(level) {
+  const hues = ["#66bdac", "#cf8fb2", "#7ba5c8", "#ba99de", "#dcbb70"];
+  const gear = [
+    '<path d="M20 32Q17 12 40 11Q65 12 60 33L51 20 26 26" fill="#244943"/><path d="m16 22 23-14 22 14-22 7Z" fill="#85d3bc"/>',
+    '<path d="M18 35Q16 10 42 12Q65 12 62 36L53 22 29 24 20 46" fill="#59374d"/><path d="m21 23 40-4" stroke="#efadc9" stroke-width="5"/>',
+    '<path d="M17 36V27Q19 10 40 9Q62 10 63 27V36L51 27 29 27Z" fill="#8aaabb" stroke="#3b5368" stroke-width="3"/><path d="M40 9v17M19 28h42" stroke="#d9eff2" stroke-width="3"/>',
+    '<path d="M16 53V28Q17 10 40 10Q65 11 64 30V53L54 31 48 20 24 29Z" fill="#594068"/><path d="m26 20 3-12 11 8 10-8 4 12" fill="#e3c781"/>',
+    '<path d="M18 40V29Q18 13 40 13Q63 13 62 40L52 26 28 26Z" fill="#453c32"/><path d="m23 22-3-15 13 7 7-12 8 12 13-7-3 15Z" fill="#e7c567" stroke="#916525" stroke-width="2"/>',
+  ];
+  return `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="40" cy="40" r="38" fill="${hues[level]}"/><path d="M10 80Q12 55 40 55Q68 55 70 80" fill="#243842"/><path d="m29 57 11 10 11-10" fill="${hues[level]}"/><rect x="33" y="47" width="14" height="15" rx="5" fill="#e4b899"/><ellipse cx="40" cy="35" rx="21" ry="24" fill="#f1ceb0"/>${gear[level]}<path d="M28 36h5m14 0h5" stroke="#3d3431" stroke-width="3" stroke-linecap="round"/><path d="M35 47q5 4 10 0" fill="none" stroke="#9d615c" stroke-width="2" stroke-linecap="round"/><circle cx="25" cy="43" r="3" fill="#e9a9a0"/><circle cx="55" cy="43" r="3" fill="#e9a9a0"/></svg>`;
+}
+const medalNames = { gold: "金メダル", silver: "銀メダル", bronze: "銅メダル" };
+function resultTitle() {
+  const r = campaign.lastResult;
+  if (campaign.completed || r?.medal === "gold") return "五人制覇";
+  if (r?.medal === "silver") return "四人突破 · 銀メダル";
+  if (r?.medal === "bronze") return "三人突破 · 銅メダル";
+  if (r?.result < 0) return "挑戦の終わり";
+  if (r?.result === 0) return "引き分け · 再戦へ";
+  return `${OPPONENTS[r?.stage ?? 0].name}に勝利`;
+}
+function resultReached() {
+  const r = campaign.lastResult;
+  return campaign.completed
+    ? 5
+    : r
+      ? r.stage + (r.result > 0 ? 1 : 0)
+      : campaign.stage;
+}
+function shareText() {
+  const r = campaign.lastResult;
+  const score = r
+    ? `\n${OPPONENTS[r.stage].name} ${characters[r.stage]}との勝負 ${r.scores[0]}対${r.scores[1]}点`
+    : "";
+  return `Duel Five｜${resultTitle()}${score}\n通算 ${campaign.wins}勝 ${campaign.losses}敗 ${campaign.draws}分\nhttps://monnouchi.github.io/duel-five/`;
+}
+let sharedImageKey = null;
+let sharedImagePromise = null;
+function renderShare() {
+  const parent = document
+    .querySelector(".app")
+    .classList.contains("campaign-complete")
+    ? $("completion")
+    : document.querySelector(".message");
+  parent.append($("share-result"));
+  $("share-result").hidden = false;
+  $("share-text").value = shareText();
+  $("share-status").textContent = "";
+  const key = `${campaign.wins}/${campaign.losses}/${campaign.draws}/${campaign.lastResult?.number}`;
+  if (key !== sharedImageKey) {
+    sharedImageKey = key;
+    sharedImagePromise = resultImage().catch(() => null);
+  }
+}
+async function resultImage() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1200;
+  canvas.height = 630;
+  const ctx = canvas.getContext("2d");
+  const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+  gradient.addColorStop(0, "#102a25");
+  gradient.addColorStop(1, "#17202f");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 1200, 630);
+  const medal =
+    campaign.lastResult?.medal ?? (campaign.completed ? "gold" : null);
+  const color =
+    medal === "silver" ? "#ccd8e0" : medal === "bronze" ? "#e1aa7e" : "#ebd18c";
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(32, 32, 1136, 566);
+  ctx.fillStyle = "#a0e2c0";
+  ctx.font = "600 32px sans-serif";
+  ctx.fillText("Duel Five", 72, 92);
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.font = "64px serif";
+  ctx.fillText(medal ? "✦" : "◇", 600, 190);
+  ctx.font = "600 60px sans-serif";
+  ctx.fillText(resultTitle(), 600, 277);
+  const r = campaign.lastResult;
+  ctx.fillStyle = "#edf5ed";
+  ctx.font = "28px sans-serif";
+  ctx.fillText(
+    r
+      ? `${OPPONENTS[r.stage].name} ${characters[r.stage]}  ·  あなた ${r.scores[0]} 対 ${r.scores[1]} CPU`
+      : "5人すべてに勝利",
+    600,
+    342,
+  );
+  const reached = resultReached();
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.arc(400 + i * 100, 408, 23, 0, Math.PI * 2);
+    ctx.fillStyle = i < reached ? color : "#405b55";
+    ctx.fill();
+    ctx.fillStyle = "#102a25";
+    ctx.font = "24px sans-serif";
+    ctx.fillText(i < reached ? "✓" : String(i + 1), 400 + i * 100, 417);
+  }
+  ctx.fillStyle = "#c0d4c8";
+  ctx.font = "24px sans-serif";
+  ctx.fillText(
+    `通算 ${campaign.wins}勝 ${campaign.losses}敗 ${campaign.draws}分`,
+    600,
+    490,
+  );
+  ctx.font = "22px sans-serif";
+  ctx.fillText(
+    "5枚、5回、一瞬の逆転。  monnouchi.github.io/duel-five/",
+    600,
+    558,
+  );
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+}
+let shareBusy = false;
+async function shareResult(download = false) {
+  if (shareBusy) return;
+  shareBusy = true;
+  try {
+    const blob = await (sharedImagePromise || resultImage());
+    if (!blob) throw new Error("image");
+    const file = new File([blob], "duel-five-result.png", {
+      type: "image/png",
+    });
+    if (
+      !download &&
+      navigator.canShare?.({ files: [file] }) &&
+      navigator.share
+    ) {
+      await navigator.share({
+        files: [file],
+        title: "Duel Five",
+        text: shareText(),
+      });
+      $("share-status").textContent = "共有しました。";
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      $("share-status").textContent =
+        "結果画像を保存しました。文章もコピーできます。";
+    }
+  } catch (e) {
+    $("share-status").textContent =
+      e.name === "AbortError"
+        ? "共有を閉じました。"
+        : "共有できませんでした。画像保存や文章の選択をお試しください。";
+  } finally {
+    shareBusy = false;
+  }
+}
+$("share-open").onclick = () => $("share-dialog").showModal();
+$("share-close").onclick = () => $("share-dialog").close();
+$("share-image").onclick = () => shareResult();
+$("save-image").onclick = () => shareResult(true);
+$("copy-result").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(shareText());
+    $("share-status").textContent = "結果の文章をコピーしました。";
+  } catch {
+    $("share-text").hidden = false;
+    $("share-text").focus();
+    $("share-text").select();
+    $("share-status").textContent = "文章を選択してコピーできます。";
+  }
+};
+
 let campaign = initialCampaign();
 try {
   campaign = readCampaign(localStorage.getItem("last-trump-campaign"));
@@ -66,11 +239,17 @@ function saveCampaign() {
 function renderCampaign() {
   $("opponent-name").textContent =
     `対戦相手 ${matchStage + 1}/5：${OPPONENTS[matchStage].name}`;
-  $("opponent-name").title = OPPONENTS[matchStage].strategy;
+  $("opponent-avatar").innerHTML = avatarSvg(matchStage);
+  $("opponent-avatar").setAttribute("aria-label", characters[matchStage]);
+  $("opponent-name").title =
+    characters[matchStage] + " · " + OPPONENTS[matchStage].strategy;
   $("opponent-guide").textContent =
-    `${OPPONENTS[matchStage].name}：${OPPONENTS[matchStage].strategy}`;
-  $("crown-record").hidden = campaign.clears === 0;
-  $("crown-record").textContent = `♛ 五人制覇 ${campaign.clears}回`;
+    `${OPPONENTS[matchStage].name} ${characters[matchStage]}：${OPPONENTS[matchStage].strategy}`;
+  $("crown-record").hidden = Object.values(campaign.medals).every(
+    (n) => n === 0,
+  );
+  $("crown-record").textContent =
+    `金${campaign.medals.gold} 銀${campaign.medals.silver} 銅${campaign.medals.bronze}`;
   $("record").textContent =
     `通算${campaign.wins + campaign.losses + campaign.draws}試合 · ${campaign.wins}勝 ${campaign.losses}敗 ${campaign.draws}分`;
 }
@@ -460,26 +639,64 @@ function beginRound(committed = false) {
   }
 }
 function showCompletion(fresh = false) {
+  const r = campaign.lastResult;
+  const medal = r?.medal ?? (campaign.completed ? "gold" : null);
   document.querySelector(".app").classList.add("campaign-complete");
-  document.querySelector(".app").classList.remove("intro", "choosing");
+  document
+    .querySelector(".app")
+    .classList.remove("intro", "choosing", "between-choice");
   $("completion").hidden = false;
-  $("opponent-name").textContent = "五人制覇 · 終幕";
+  $("completion").dataset.medal = medal || "none";
+  $("opponent-name").textContent = `${resultTitle()} · 終幕`;
   $("completion").classList.toggle("celebrate", fresh);
-  $("completion-score").textContent = fresh
-    ? `大将との最終戦　${state.scores[0]} 対 ${state.scores[1]}点で勝利`
+  $("completion-title").textContent = resultTitle();
+  document.querySelector(".completion-crown").textContent =
+    medal === "gold" ? "♛" : medal ? "✦" : "◇";
+  document.querySelector(".completion-seal").hidden = !medal;
+  document.querySelector(".completion-seal span").textContent =
+    "獲得したメダル";
+  $("completion-story").textContent =
+    medal === "gold"
+      ? "最後の一枚が、王冠をもたらした。"
+      : medal
+        ? `${r.stage}人に勝利した証を、あなたに。`
+        : r?.result === 0
+          ? "同じ相手との勝負は、まだ続く。"
+          : r?.result > 0
+            ? "次の相手が、あなたを待っている。"
+            : "次の挑戦は、先鋒から。";
+  $("completion-path").textContent = OPPONENTS.map(
+    (o, i) => `${o.name}${i < resultReached() ? " ✓" : ""}`,
+  ).join("　");
+  $("completion-score").textContent = r
+    ? `${OPPONENTS[r.stage].name}との最終戦　${r.scores[0]} 対 ${r.scores[1]}点`
     : "五人すべてに勝利した記録が残っています。";
-  $("completion-count").textContent = `♛ × ${campaign.clears}`;
+  $("completion-count").textContent = medal
+    ? `${medalNames[medal]} × ${campaign.medals[medal]}`
+    : "";
   $("completion-record").textContent = $("record").textContent;
-  action("もう一度遊ぶ（任意）");
+  $("completion-end").textContent =
+    campaign.completed || r?.result < 0
+      ? "これにて終幕。おつかれさまでした。"
+      : "結果を確認して、次の勝負へ。";
+  action(
+    campaign.completed
+      ? "もう一度遊ぶ（任意）"
+      : r?.result < 0
+        ? "先鋒からもう一度挑む"
+        : r?.result === 0
+          ? `${OPPONENTS[campaign.stage].name}と再戦する`
+          : `次の相手・${OPPONENTS[campaign.stage].name}に挑む`,
+  );
+  renderShare();
   $("completion-title").focus({ preventScroll: true });
 }
 function start() {
   $("completion").hidden = true;
   document.querySelector(".app").classList.remove("campaign-complete");
-  if (campaign.completed) {
-    campaign = nextCircuit(campaign);
-    saveCampaign();
-  }
+  campaign = resumeCampaign(campaign);
+  saveCampaign();
+  $("share-result").hidden = true;
   matchStage = campaign.stage;
   renderCampaign();
   state = initialState();
@@ -592,7 +809,7 @@ async function battle() {
     const result = matchResult(state);
     const sweep = sweepKind(state);
     phase = "finished";
-    campaign = finishCampaignMatch(campaign, result);
+    campaign = finishCampaignMatch(campaign, result, state.scores);
     saveCampaign();
     renderCampaign();
     $("arena").classList.add(
@@ -623,7 +840,9 @@ async function battle() {
         ? "大将に勝利。5人全員に勝ちました。"
         : result > 0
           ? `次は${OPPONENTS[campaign.stage].name}との5ラウンドです。`
-          : `${OPPONENTS[matchStage].name}から再挑戦できます。`,
+          : result < 0
+            ? "先鋒から新たに挑戦できます。"
+            : "引き分け。同じ相手に再挑戦できます。",
     );
     cue(
       campaign.completed
@@ -644,7 +863,9 @@ async function battle() {
         ? "もう一度遊ぶ（任意）"
         : result > 0
           ? `次の相手・${OPPONENTS[campaign.stage].name}に挑む`
-          : `${OPPONENTS[matchStage].name}に再挑戦する`,
+          : result < 0
+            ? "先鋒からもう一度挑む"
+            : `${OPPONENTS[matchStage].name}に再挑戦する`,
     );
   } else {
     phase = "between";
@@ -663,7 +884,9 @@ async function battle() {
         "次は残り1枚同士。ボタンで自動決着へ進みます。";
   }
   renderHand();
-  if (campaign.completed) showCompletion(true);
+  if (phase === "finished") renderShare();
+  if (campaign.completed || campaign.lastResult?.result < 0)
+    showCompletion(true);
   $("help").disabled = false;
 }
 $("action").onclick = () => {
@@ -698,7 +921,8 @@ for (const event of ["pointerdown", "keydown"])
     { capture: true },
   );
 updateSound();
-if (campaign.completed) {
+if (campaign.completed || campaign.lastResult) {
+  matchStage = campaign.lastResult?.stage ?? campaign.stage;
   renderCampaign();
   phase = "completed";
   showCompletion();

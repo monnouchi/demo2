@@ -184,13 +184,15 @@ export function matchSummary(state) {
 
 export function initialCampaign() {
   return {
-    version: 1,
+    version: 2,
     stage: 0,
     wins: 0,
     losses: 0,
     draws: 0,
     clears: 0,
     completed: false,
+    medals: { gold: 0, silver: 0, bronze: 0 },
+    lastResult: null,
   };
 }
 export function readCampaign(raw) {
@@ -198,7 +200,7 @@ export function readCampaign(raw) {
     const c = JSON.parse(raw);
     if (
       !c ||
-      c.version !== 1 ||
+      ![1, 2].includes(c.version) ||
       !Number.isInteger(c.stage) ||
       c.stage < 0 ||
       c.stage > 4 ||
@@ -206,41 +208,108 @@ export function readCampaign(raw) {
       (c.completed && c.stage !== 4)
     )
       return initialCampaign();
-    for (const key of ["wins", "losses", "draws", "clears"])
-      if (!Number.isSafeInteger(c[key]) || c[key] < 0 || c[key] > 100000000)
-        return initialCampaign();
-    if (c.wins !== c.clears * 5 + (c.completed ? 0 : c.stage))
+    const valid = (n) => Number.isSafeInteger(n) && n >= 0 && n <= 100000000;
+    if (![c.wins, c.losses, c.draws, c.clears].every(valid))
       return initialCampaign();
+    if (
+      c.version === 1 &&
+      c.wins !== c.clears * 5 + (c.completed ? 0 : c.stage)
+    )
+      return initialCampaign();
+    if (c.wins < c.clears * 5 + (c.completed ? 0 : c.stage))
+      return initialCampaign();
+    const medals =
+      c.version === 1 ? { gold: c.clears, silver: 0, bronze: 0 } : c.medals;
+    if (
+      !medals ||
+      ![medals.gold, medals.silver, medals.bronze].every(valid) ||
+      medals.gold !== c.clears ||
+      medals.silver + medals.bronze > c.losses
+    )
+      return initialCampaign();
+    let lastResult = null;
+    const r = c.lastResult;
+    if (
+      c.version === 2 &&
+      r &&
+      Number.isInteger(r.stage) &&
+      r.stage >= 0 &&
+      r.stage < 5 &&
+      [-1, 0, 1].includes(r.result) &&
+      [null, "gold", "silver", "bronze"].includes(r.medal) &&
+      r.number === c.wins + c.losses + c.draws &&
+      Array.isArray(r.scores) &&
+      r.scores.length === 2 &&
+      r.scores.every((n) => Number.isInteger(n) && n >= 0 && n <= 7)
+    ) {
+      const expected = medalFor(r.stage, r.result);
+      if (r.medal === expected)
+        lastResult = {
+          stage: r.stage,
+          result: r.result,
+          medal: r.medal,
+          number: r.number,
+          scores: [...r.scores],
+        };
+    }
     return {
-      version: 1,
+      version: 2,
       stage: c.stage,
       wins: c.wins,
       losses: c.losses,
       draws: c.draws,
       clears: c.clears,
       completed: c.completed,
+      medals: { ...medals },
+      lastResult,
     };
   } catch {
     return initialCampaign();
   }
 }
-export function finishCampaignMatch(campaign, result) {
-  if (campaign.completed || ![-1, 0, 1].includes(result))
+export function medalFor(stage, result) {
+  return result > 0 && stage === 4
+    ? "gold"
+    : result < 0 && stage === 4
+      ? "silver"
+      : result < 0 && stage === 3
+        ? "bronze"
+        : null;
+}
+export function finishCampaignMatch(campaign, result, scores = [0, 0]) {
+  if (campaign.completed || campaign.lastResult || ![-1, 0, 1].includes(result))
     throw new RangeError("Invalid campaign result");
-  const next = { ...campaign };
+  const next = { ...campaign, medals: { ...campaign.medals } };
   next[result > 0 ? "wins" : result < 0 ? "losses" : "draws"]++;
+  const medal = medalFor(campaign.stage, result);
+  if (medal) next.medals[medal]++;
   if (result > 0) {
     if (next.stage < 4) next.stage++;
     else {
       next.completed = true;
       next.clears++;
     }
-  }
+  } else if (result < 0) next.stage = 0;
+  next.lastResult = {
+    stage: campaign.stage,
+    result,
+    medal,
+    number: next.wins + next.losses + next.draws,
+    scores: [...scores],
+  };
   return next;
+}
+export function resumeCampaign(campaign) {
+  return {
+    ...campaign,
+    stage: campaign.completed ? 0 : campaign.stage,
+    completed: false,
+    lastResult: null,
+  };
 }
 export function nextCircuit(campaign) {
   if (!campaign.completed) throw new RangeError("Circuit not finished");
-  return { ...campaign, stage: 0, completed: false };
+  return resumeCampaign(campaign);
 }
 
 export function sweepKind(state) {

@@ -12,6 +12,7 @@ import {
   readCampaign,
   finishCampaignMatch,
   nextCircuit,
+  resumeCampaign,
   sweepKind,
 } from "../src/game.js";
 const permutations = (a) =>
@@ -70,36 +71,59 @@ test("all 5 policies are normalized and legal in every public hand state", () =>
     assert.throws(() => cpuPolicy([...CARDS], [...CARDS], 0, level));
   assert.equal(OPPONENTS.length, 5);
 });
-test("wins advance, losses and draws retry, fifth win clears, next circuit keeps stats", () => {
-  let c = initialCampaign();
-  const original = structuredClone(c);
-  c = finishCampaignMatch(c, -1);
-  c = finishCampaignMatch(c, 0);
-  assert.equal(c.stage, 0);
-  assert.equal(c.losses, 1);
-  assert.equal(c.draws, 1);
+test("win advances, draw rematches, defeat resets, medals award once and survive reload", () => {
   for (let stage = 0; stage < 5; stage++) {
-    assert.equal(c.stage, stage);
-    c = finishCampaignMatch(c, 1);
-    assert.equal(c.wins, stage + 1);
+    let c = initialCampaign();
+    for (let i = 0; i < stage; i++)
+      c = resumeCampaign(finishCampaignMatch(c, 1, [4, 3]));
+    const draw = finishCampaignMatch(c, 0, [3, 3]);
+    assert.equal(draw.stage, stage);
+    assert.deepEqual(draw.medals, c.medals);
+    assert.throws(() => finishCampaignMatch(draw, 0));
+    assert.deepEqual(readCampaign(JSON.stringify(draw)), draw);
+    const loss = finishCampaignMatch(resumeCampaign(draw), -1, [2, 5]);
+    assert.equal(loss.stage, 0);
+    const expected = stage === 4 ? "silver" : stage === 3 ? "bronze" : null;
+    assert.equal(loss.lastResult.medal, expected);
+    assert.equal(loss.medals.silver, stage === 4 ? 1 : 0);
+    assert.equal(loss.medals.bronze, stage === 3 ? 1 : 0);
+    for (let i = 0; i < 3; i++)
+      assert.deepEqual(readCampaign(JSON.stringify(loss)), loss);
+    assert.throws(() => finishCampaignMatch(loss, -1));
+    assert.equal(resumeCampaign(loss).lastResult, null);
+  }
+  let c = initialCampaign();
+  for (let i = 0; i < 5; i++) {
+    c = finishCampaignMatch(c, 1, [4, 3]);
+    if (i < 4) c = resumeCampaign(c);
   }
   assert.equal(c.completed, true);
+  assert.equal(c.medals.gold, 1);
   assert.equal(c.clears, 1);
-  assert.equal(c.stage, 4);
-  assert.throws(() => finishCampaignMatch(c, 1));
-  assert.deepEqual(initialCampaign(), original);
   assert.deepEqual(readCampaign(JSON.stringify(c)), c);
-  c = nextCircuit(c);
-  assert.deepEqual(c, {
+  const next = nextCircuit(c);
+  assert.equal(next.stage, 0);
+  assert.equal(next.medals.gold, 1);
+  assert.equal(next.wins, 5);
+});
+test("legacy progress and historical gold migrate without inventing silver or bronze", () => {
+  const old = {
     version: 1,
-    stage: 0,
-    wins: 5,
-    losses: 1,
-    draws: 1,
-    clears: 1,
-    completed: false,
-  });
-  assert.deepEqual(readCampaign(JSON.stringify(c)), c);
+    stage: 4,
+    wins: 25,
+    losses: 14,
+    draws: 10,
+    clears: 5,
+    completed: true,
+  };
+  const migrated = readCampaign(JSON.stringify(old));
+  assert.equal(migrated.version, 2);
+  assert.equal(migrated.wins, 25);
+  assert.equal(migrated.losses, 14);
+  assert.equal(migrated.draws, 10);
+  assert.deepEqual(migrated.medals, { gold: 5, silver: 0, bronze: 0 });
+  assert.equal(migrated.completed, true);
+  assert.deepEqual(readCampaign(JSON.stringify(migrated)), migrated);
 });
 test("invalid or inconsistent saved progress resets safely", () => {
   for (const value of [
@@ -110,7 +134,7 @@ test("invalid or inconsistent saved progress resets safely", () => {
     JSON.stringify({ ...initialCampaign(), stage: 4 }),
     JSON.stringify({ ...initialCampaign(), wins: -1 }),
     JSON.stringify({ ...initialCampaign(), completed: true }),
-    JSON.stringify({ ...initialCampaign(), version: 2 }),
+    JSON.stringify({ ...initialCampaign(), version: 3 }),
   ])
     assert.deepEqual(readCampaign(value), initialCampaign());
   assert.throws(() => finishCampaignMatch(initialCampaign(), null));

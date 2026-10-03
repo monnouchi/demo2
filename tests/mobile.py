@@ -148,11 +148,12 @@ with sync_playwright() as p:
             assert f'sweep-{expected_sweep}' in page.locator('#arena').get_attribute('class')
         assert expected in page.locator('#message-title').inner_text(), page.locator('#message-title').inner_text()
         assert 'finished' in page.locator('#arena').get_attribute('class')
-        assert page.locator('.recap').is_visible()
+        assert page.locator('.recap').count()==1
+        assert page.locator('#completion').is_visible() == (name in ['defeat','swept'])
         assert page.locator('#hand-hint').inner_text() == '勝ち数ではなく合計点'
         assert page.locator('#hand-title').inner_text() == '合計点の内訳'
         assert page.locator('.playing-card').count() == 0
-        assert page.locator('#history').bounding_box()['y'] + page.locator('#history').bounding_box()['height'] <= match_viewport['height']
+        assert page.evaluate('document.documentElement.scrollHeight<=innerHeight')
         if name == 'defeat':
             assert 'あなた 1 = 1点 ／ CPU 2 = 2点' in page.locator('.recap').inner_text()
         expected_class = {'victory':'match-win','defeat':'match-loss','draw':'match-draw','swept':'match-loss'}[name]
@@ -166,7 +167,7 @@ with sync_playwright() as p:
         page.wait_for_timeout(0 if reduced else 900)
         page.screenshot(path=str(OUT / f'{name}.png'))
         page.locator('#action').tap()
-        assert ('中堅' if name == 'victory' else '次鋒') in page.locator('#opponent-name').inner_text()
+        assert ('中堅' if name == 'victory' else '次鋒' if name=='draw' else '先鋒') in page.locator('#opponent-name').inner_text()
         assert page.locator('#player-score').inner_text() == '0'
         assert page.locator('#cpu-score').inner_text() == '0'
         assert page.locator('.playing-card:not([disabled])').count() == 5
@@ -196,7 +197,7 @@ with sync_playwright() as p:
     assert '5人勝ち抜き達成' in page.locator('#message-kicker').inner_text()
     assert '任意' in page.locator('#action').inner_text()
     assert page.locator('#completion').is_visible()
-    assert '♛ × 1' in page.locator('#completion-count').inner_text()
+    assert '金メダル × 1' in page.locator('#completion-count').inner_text()
     assert page.locator('#completion-title').evaluate('(e) => e === document.activeElement')
     assert page.locator('#action').bounding_box()['y'] + page.locator('#action').bounding_box()['height'] <= 548
     page.screenshot(path=str(OUT / 'campaign-clear.png'))
@@ -209,7 +210,7 @@ with sync_playwright() as p:
     page.locator('#action').tap()
     assert '1/5：先鋒' in page.locator('#opponent-name').inner_text()
     assert not page.locator('#completion').is_visible()
-    assert '五人制覇 1回' in page.locator('#crown-record').inner_text()
+    assert '金1' in page.locator('#crown-record').inner_text()
     assert '通算5試合' in page.locator('#record').inner_text()
     results.append({'campaign': 'all five opponents, auto final round, completion, persistence, next circuit'})
     page.close()

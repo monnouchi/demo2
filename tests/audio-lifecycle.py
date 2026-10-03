@@ -30,6 +30,7 @@ with sync_playwright() as p:
  page=b.new_page(viewport={'width':375,'height':667},is_mobile=True,has_touch=True)
  page.add_init_script(PROBE);page.on('pageerror',lambda e:errors.append(str(e)))
  page.goto(URL);page.locator('#ready').click()
+ original_progress=page.evaluate('localStorage.getItem("last-trump-campaign")')
  page.locator('[data-card="1"]').tap()
  assert page.evaluate('control.contexts.length')==0
  page.locator('#sound').tap();page.wait_for_function('control.starts===2')
@@ -68,7 +69,7 @@ with sync_playwright() as p:
  page.locator('[data-card="2"]').tap();page.wait_for_function('(n)=>control.starts===n+2',arg=before)
  assert page.evaluate('control.contexts.length')==2
  results.append('closed context recreated only on enabled audio input')
- assert page.evaluate('localStorage.getItem("last-trump-campaign")') is None
+ assert page.evaluate('localStorage.getItem("last-trump-campaign")')==original_progress
  b.close()
 assert not errors,errors
 Path('artifacts/audio-lifecycle-results.json').write_text(json.dumps({'results':results,'page_errors':errors},indent=2))

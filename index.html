@@ -37,26 +37,47 @@
     <title>Duel Five</title>
     <link rel="stylesheet" href="./src/style.css?v=2026.10.03-2" />
 
-<!-- Static social metadata: available to crawlers without JavaScript. -->
-<link rel="canonical" href="https://monnouchi.github.io/duel-five/">
-<meta property="og:type" content="website">
-<meta property="og:locale" content="ja_JP">
-<meta property="og:site_name" content="Duel Five">
-<meta property="og:title" content="Duel Five">
-<meta property="og:description" content="5枚、5回、一瞬の逆転。1〜5の札を一度ずつ使い、5人のCPUに挑むカードデュエル。">
-<meta property="og:url" content="https://monnouchi.github.io/duel-five/">
-<meta property="og:image" content="https://monnouchi.github.io/duel-five/assets/social-preview.png">
-<meta property="og:image:secure_url" content="https://monnouchi.github.io/duel-five/assets/social-preview.png">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Duel Five。緑色の1と赤色の5が向き合うカードデュエル。">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Duel Five">
-<meta name="twitter:description" content="5枚、5回、一瞬の逆転。1〜5の札を一度ずつ使い、5人のCPUに挑むカードデュエル。">
-<meta name="twitter:image" content="https://monnouchi.github.io/duel-five/assets/social-preview.png">
-<meta name="twitter:image:alt" content="Duel Five。緑色の1と赤色の5が向き合うカードデュエル。">
-</head>
+    <!-- Static social metadata: available to crawlers without JavaScript. -->
+    <link rel="canonical" href="https://monnouchi.github.io/duel-five/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:site_name" content="Duel Five" />
+    <meta property="og:title" content="Duel Five" />
+    <meta
+      property="og:description"
+      content="5枚、5回、一瞬の逆転。1〜5の札を一度ずつ使い、5人のCPUに挑むカードデュエル。"
+    />
+    <meta property="og:url" content="https://monnouchi.github.io/duel-five/" />
+    <meta
+      property="og:image"
+      content="https://monnouchi.github.io/duel-five/assets/social-preview.png"
+    />
+    <meta
+      property="og:image:secure_url"
+      content="https://monnouchi.github.io/duel-five/assets/social-preview.png"
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Duel Five。緑色の1と赤色の5が向き合うカードデュエル。"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Duel Five" />
+    <meta
+      name="twitter:description"
+      content="5枚、5回、一瞬の逆転。1〜5の札を一度ずつ使い、5人のCPUに挑むカードデュエル。"
+    />
+    <meta
+      name="twitter:image"
+      content="https://monnouchi.github.io/duel-five/assets/social-preview.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="Duel Five。緑色の1と赤色の5が向き合うカードデュエル。"
+    />
+  </head>
   <body>
     <main class="app">
       <header class="topbar">
@@ -88,7 +109,8 @@
         </div>
       </header>
       <section class="campaign-bar" aria-label="対戦相手と通算戦績">
-        <strong id="opponent-name"></strong><span id="record"></span>
+        <span id="opponent-avatar" class="opponent-avatar" role="img"></span
+        ><strong id="opponent-name"></strong><span id="record"></span>
         <span id="crown-record" hidden></span>
       </section>
       <section
@@ -100,14 +122,20 @@
         <p class="completion-eyebrow">Duel Five · FINALE</p>
         <div class="completion-crown" aria-hidden="true">♛</div>
         <h1 id="completion-title" tabindex="-1">五人制覇</h1>
-        <p class="completion-story">最後の一枚が、王冠をもたらした。</p>
-        <p class="completion-path">先鋒 ✓　次鋒 ✓　中堅 ✓　副将 ✓　大将 ✓</p>
+        <p id="completion-story" class="completion-story">
+          最後の一枚が、王冠をもたらした。
+        </p>
+        <p id="completion-path" class="completion-path">
+          先鋒 ✓　次鋒 ✓　中堅 ✓　副将 ✓　大将 ✓
+        </p>
         <p id="completion-score"></p>
         <div class="completion-seal">
           <span>獲得した王冠</span><strong id="completion-count"></strong>
         </div>
         <p id="completion-record"></p>
-        <p class="completion-end">これにて終幕。おつかれさまでした。</p>
+        <p id="completion-end" class="completion-end">
+          これにて終幕。おつかれさまでした。
+        </p>
         <small>このまま閉じて大丈夫です。</small>
       </section>
       <section class="match-meta">
@@ -173,6 +201,11 @@
         <span>一枚選んでください</span><span aria-hidden="true">↗</span>
       </button>
 
+      <div id="share-result" class="share-result" hidden>
+        <button id="share-open" class="share-toggle" aria-label="結果を共有">
+          共有
+        </button>
+      </div>
       <section class="history-zone">
         <div class="section-label">
           <span id="history-title">公開された札</span
@@ -198,7 +231,7 @@
       </div>
       <p id="opponent-guide" class="opponent-guide"></p>
       <p class="campaign-rule">
-        先鋒 → 次鋒 → 中堅 → 副将 → 大将<br />1人と5ラウンド。勝てば次へ、負け・引分は同じ相手に再挑戦。
+        先鋒 → 次鋒 → 中堅 → 副将 → 大将<br />1人と5ラウンド。勝てば次へ、負けたら先鋒へ。引分は同じ相手と再戦。
       </p>
       <div class="rule-example">
         <span>1</span><strong>›</strong><span>5</span
@@ -227,6 +260,30 @@
         HTML 2026.10.03-2 / JS確認待ち
       </p>
       <button id="ready" class="primary">遊ぶ <span>→</span></button>
+    </dialog>
+    <dialog id="share-dialog" aria-labelledby="share-title">
+      <div class="dialog-heading">
+        <h2 id="share-title">Duel Fiveの結果</h2>
+        <button
+          id="share-close"
+          class="icon-button"
+          aria-label="共有画面を閉じる"
+        >
+          ×
+        </button>
+      </div>
+      <p>結果の画像や文章を、お好みの場所へ。</p>
+      <div class="share-actions">
+        <button id="share-image">画像を共有</button
+        ><button id="save-image">画像保存</button
+        ><button id="copy-result">文章をコピー</button>
+      </div>
+      <p id="share-status" role="status"></p>
+      <textarea
+        id="share-text"
+        readonly
+        aria-label="共有する結果の文章"
+      ></textarea>
     </dialog>
     <script type="module" src="./src/app.js?v=2026.10.03-2"></script>
   </body>

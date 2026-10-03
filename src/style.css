@@ -2645,3 +2645,156 @@ select:focus-visible {
     background: #15232cf5;
   }
 }
+.opponent-avatar {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  left: 7px;
+  top: 5px;
+  overflow: hidden;
+  border-radius: 50%;
+}
+.opponent-avatar svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.campaign-bar {
+  padding-left: 44px;
+}
+.campaign-bar strong {
+  font-size: 11px;
+}
+.share-result[hidden] {
+  display: none;
+}
+.share-actions {
+  display: flex;
+  gap: 6px;
+}
+.share-actions button {
+  flex: 1;
+  min-height: 44px;
+  padding: 7px 3px;
+  border: 1px solid #91ac99;
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 10px;
+}
+.share-result p {
+  margin: 4px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+.share-result p:empty {
+  display: none;
+}
+#share-text {
+  width: 100%;
+  min-height: 105px;
+  user-select: text;
+  -webkit-user-select: text;
+  color: var(--text);
+  background: var(--panel);
+}
+.app.campaign-complete > #share-result {
+  display: block;
+}
+.completion[data-medal="silver"] {
+  border-color: #98aebd;
+  background: radial-gradient(ellipse at 50% 25%, #e1edf4, #fffdf6 68%);
+}
+.completion[data-medal="silver"] .completion-crown,
+.completion[data-medal="silver"] .completion-seal {
+  color: #51697c;
+}
+.completion[data-medal="bronze"] {
+  border-color: #b17f53;
+  background: radial-gradient(ellipse at 50% 25%, #f4ddc8, #fffdf6 68%);
+}
+.completion[data-medal="bronze"] .completion-crown,
+.completion[data-medal="bronze"] .completion-seal {
+  color: #8d5c35;
+}
+[data-theme="dark"] .completion[data-medal="silver"] {
+  background: radial-gradient(ellipse at 50% 25%, #314250, #15232c 68%);
+}
+[data-theme="dark"] .completion[data-medal="silver"] .completion-crown,
+[data-theme="dark"] .completion[data-medal="silver"] .completion-seal {
+  color: #c7dce9;
+}
+[data-theme="dark"] .completion[data-medal="bronze"] {
+  background: radial-gradient(ellipse at 50% 25%, #493327, #15232c 68%);
+}
+[data-theme="dark"] .completion[data-medal="bronze"] .completion-crown,
+[data-theme="dark"] .completion[data-medal="bronze"] .completion-seal {
+  color: #e7b68e;
+}
+@media (max-height: 600px) {
+  .app.campaign-complete {
+    gap: 4px;
+  }
+  .app.campaign-complete .completion-crown {
+    font-size: 38px;
+  }
+  .app.campaign-complete .completion {
+    padding: 7px;
+  }
+  .app.campaign-complete .completion h1 {
+    font-size: 23px;
+    letter-spacing: 3px;
+  }
+  .app.campaign-complete .completion-story {
+    margin: 5px 0 8px;
+  }
+  .app.campaign-complete .completion-end {
+    margin: 7px 0 4px;
+  }
+  .app.campaign-complete .completion-seal {
+    margin-top: 5px;
+  }
+  .app.campaign-complete .completion-path {
+    font-size: 9px;
+  }
+  .share-actions button {
+    min-height: 44px;
+  }
+}
+
+.completion-seal[hidden] {
+  display: none;
+}
+.message,
+.completion {
+  position: relative;
+}
+.share-result {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.completion .share-result {
+  right: 5px;
+  top: 4px;
+}
+.share-toggle {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 5px;
+  font-size: 10px;
+  color: var(--mint);
+  background: var(--panel);
+  border: 1px solid #819e8b;
+  border-radius: 10px;
+}
+.message:has(.share-result:not([hidden])) #message-kicker {
+  padding-right: 48px;
+  display: block;
+}
+#share-dialog {
+  width: min(90vw, 420px);
+}
+#share-dialog p {
+  font-size: 12px;
+}

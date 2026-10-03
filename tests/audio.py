@@ -123,7 +123,7 @@ with sync_playwright() as p:
         if stage==4:
             assert page.locator('#completion').is_visible()
             assert page.locator('#completion-title').inner_text()=='五人制覇'
-            assert page.locator('#completion-count').inner_text()=='♛ × 1'
+            assert page.locator('#completion-count').inner_text()=='金メダル × 1'
             assert page.evaluate('document.documentElement.scrollHeight<=innerHeight')
             page.wait_for_timeout(1200)
             assert page.locator('#action').evaluate('(e)=>getComputedStyle(e).backgroundColor')=='rgba(0, 0, 0, 0)'
@@ -133,7 +133,7 @@ with sync_playwright() as p:
             assert page.locator('#completion').is_visible()
             assert not page.locator('#rules').evaluate('(e)=>e.open')
             assert notes(page)==[], 'reload must not replay the finale'
-            assert page.locator('#completion-count').inner_text()=='♛ × 1'
+            assert page.locator('#completion-count').inner_text()=='金メダル × 1'
         report.append({'ending':name,'scheduled_notes':len(final),'checks':'one ending cue, automatic fifth, no overlap with round cue, repeated-click lock'})
         page.close()
 
