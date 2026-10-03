@@ -1,0 +1,20 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><title>Duel Five social artwork source</title><style>body{margin:0;background:#f6f5ee}canvas{display:block}</style><canvas width="1200" height="630"></canvas><script>
+// Original native artwork. Render at exactly 1200×630; export canvas as PNG.
+const c=document.querySelector('canvas').getContext('2d');
+const mint='#176f53',coral='#ac3f51',gold='#9a6416';
+function text(t,x,y,size,color,weight=500){c.fillStyle=color;c.font=`${weight} ${size}px -apple-system, 'Hiragino Kaku Gothic ProN', sans-serif`;c.fillText(t,x,y)}
+function star(x,y,r,color){c.fillStyle=color;c.beginPath();c.moveTo(x,y-r);c.quadraticCurveTo(x+r*.12,y-r*.12,x+r,y);c.quadraticCurveTo(x+r*.12,y+r*.12,x,y+r);c.quadraticCurveTo(x-r*.12,y+r*.12,x-r,y);c.quadraticCurveTo(x-r*.12,y-r*.12,x,y-r);c.fill()}
+function card(x,y,n,color,angle=0,scale=1){c.save();c.translate(x,y);c.rotate(angle);c.scale(scale,scale);c.shadowColor=color+'25';c.shadowBlur=32;c.fillStyle='#fffdf6';c.strokeStyle=color;c.lineWidth=2;c.beginPath();c.roundRect(-79,-114,158,228,13);c.fill();c.stroke();c.shadowBlur=0;c.strokeStyle=color+'25';c.strokeRect(-68,-103,136,206);text(String(n),-59,-68,25,color,700);text(String(n),42,96,25,color,700);c.textAlign='center';text(String(n),0,30,82,color,650);text(['刺客','双刃','騎士','女王','王冠'][n-1],0,73,12,color);c.textAlign='left';star(0,-65,12,color);c.restore()}
+c.fillStyle='#f6f5ee';c.fillRect(0,0,1200,630);
+for(const [x,y,col] of [[780,310,mint],[1070,250,coral]]){const g=c.createRadialGradient(x,y,0,x,y,410);g.addColorStop(0,col+'12');g.addColorStop(1,col+'00');c.fillStyle=g;c.fillRect(0,0,1200,630)}
+c.strokeStyle='#6b796e20';c.lineWidth=1;for(const r of [210,270,325]){c.beginPath();c.arc(938,290,r,0,Math.PI*2);c.stroke()}
+star(78,84,22,mint);text('5 CARDS · 5 ROUNDS',116,93,17,mint,650);
+text('Duel Five',64,234,80,'#203c31',750);text('5枚、5回、一瞬の逆転。',68,298,29,gold,600);
+text('1〜5の札で、5人のCPUに挑む。',68,357,22,'#647367');
+c.fillStyle=mint;c.fillRect(68,403,46,3);text('1だけは、5に勝つ。',68,452,23,mint,600);
+text('BROWSER CARD GAME',68,558,14,'#6b796e',600);
+card(809,286,1,mint,-.14,1.13);card(1050,272,5,coral,.14,1.13);
+text('VS',913,300,24,gold,800);
+for(let i=1;i<=5;i++)card(745+i*66,506,i,i===5?coral:mint,(i-3)*.09,.43);
+window.artworkReady=true;
+</script></html>
