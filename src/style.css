@@ -1,5 +1,5 @@
 :root {
-  --release: "2026.10.02-4";
+  --release: "2026.10.02-5";
 }
 :root {
   color-scheme: dark;
@@ -2255,7 +2255,7 @@ dialog ul {
 }
 .completion small {
   font-size: 10px;
-  color: #68766c;
+  color: #59665d;
 }
 .app.campaign-complete #action {
   background: transparent;
@@ -2351,4 +2351,297 @@ dialog ul {
   margin: 0 0 5px;
   line-height: 1.4;
   overflow-wrap: anywhere;
+}
+
+/* Preferences do not add height to the compact game layout. */
+.theme-select {
+  width: 66px;
+  padding: 6px;
+  font-size: 14px;
+  min-height: 44px;
+}
+.tools {
+  align-items: center;
+  gap: 6px;
+}
+select {
+  font: inherit;
+  touch-action: manipulation;
+}
+select:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+@media (max-width: 360px) {
+  .brand-icon {
+    display: none;
+  }
+  .brand {
+    gap: 0;
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+  .brand small {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+}
+.app.between-choice #action {
+  display: none;
+}
+
+/* Night palette: bright ink and restrained light, with distinct player/CPU hues. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0c151c;
+  --panel: #15232c;
+  --text: #eaf3ef;
+  --muted: #b5c8bf;
+  --mint: #90e3bb;
+  --coral: #ffb2c0;
+  --gold: #f2cd84;
+}
+[data-theme="dark"] body:before {
+  background:
+    radial-gradient(ellipse at 15% 20%, #1c4b4640, transparent 60%),
+    radial-gradient(ellipse at 90% 65%, #65512625, transparent 60%);
+}
+[data-theme="dark"] .icon-button {
+  color: #eaf3ef;
+  background: #192b35;
+  border-color: #718c80;
+}
+[data-theme="dark"] .score-divider,
+[data-theme="dark"] .round-track,
+[data-theme="dark"] .section-label,
+[data-theme="dark"] .section-label small {
+  color: #b5c8bf;
+}
+[data-theme="dark"] .round-track i {
+  background: #829d8f;
+}
+[data-theme="dark"] .round-track .complete i {
+  background: #98c5ad;
+}
+[data-theme="dark"] .campaign-bar {
+  background: #172730;
+}
+[data-theme="dark"] #crown-record {
+  color: #f2cd84;
+}
+[data-theme="dark"] .mini-card {
+  background: #36232d;
+  color: #ffc4cf;
+  border-color: #c17f92;
+}
+[data-theme="dark"] .mini-card.used {
+  opacity: 0.5;
+}
+[data-theme="dark"] .orbit {
+  border-color: #88cfaa40;
+}
+[data-theme="dark"] .arena-cross {
+  background: linear-gradient(90deg, transparent, #8acdaa50, transparent);
+}
+[data-theme="dark"] .stage-card {
+  background: linear-gradient(145deg, #244c3f, #172d29);
+  border-color: #8bccaa;
+}
+[data-theme="dark"] .cpu-side .stage-card {
+  background: linear-gradient(145deg, #503040, #2d1e2b);
+  border-color: #d591a6;
+}
+[data-theme="dark"] .stage-card.face {
+  color: #c6ffe1;
+}
+[data-theme="dark"] .cpu-side .stage-card.face {
+  color: #ffd3df;
+}
+[data-theme="dark"] .back-pattern {
+  border-color: #8bd8ad70;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0 6px,
+    #8bd8ad12 6px 7px
+  );
+}
+[data-theme="dark"] .back-pattern:before,
+[data-theme="dark"] .back-pattern:after {
+  border-color: #8bd8ad88;
+}
+[data-theme="dark"] .cpu-side .back-pattern:before,
+[data-theme="dark"] .cpu-side .back-pattern:after {
+  border-color: #e5a1b788;
+}
+[data-theme="dark"] .versus {
+  color: #b5c8bf;
+}
+[data-theme="dark"] .playing-card {
+  background: linear-gradient(150deg, #203d32, #152921);
+  color: #d5f8df;
+  border-color: #81b899;
+  box-shadow: 0 5px 12px #0004;
+}
+[data-theme="dark"] .app.intro .playing-card:not(.selected) {
+  border-color: #81b899;
+  box-shadow: 0 5px 14px #0004;
+}
+[data-theme="dark"] .playing-card:after,
+[data-theme="dark"] .stage-card:after {
+  border-color: #8bd8ad40;
+}
+[data-theme="dark"] .playing-card.selected {
+  background: linear-gradient(145deg, #356749, #214c38);
+  border-color: #aff7c8;
+  box-shadow:
+    0 0 0 2px #90e3bb,
+    0 8px 18px #0004;
+}
+[data-theme="dark"] .playing-card.used {
+  opacity: 0.4;
+}
+[data-theme="dark"] .confirm-note {
+  color: #f1ffe8;
+}
+[data-theme="dark"] .primary {
+  background: #90e3bb;
+  color: #10291f;
+  box-shadow: 0 6px 15px #0003;
+}
+[data-theme="dark"] .primary:disabled {
+  background: #243c32;
+  color: #c0d6c7;
+}
+[data-theme="dark"] .app.choosing .primary:not(:disabled) {
+  background: #f2cd84;
+  color: #30220c;
+  box-shadow: 0 5px 15px #0003;
+}
+[data-theme="dark"] .history li {
+  background: #172730;
+  border-color: #718c80;
+}
+[data-theme="dark"] .history small,
+[data-theme="dark"] .history b,
+[data-theme="dark"] .history em {
+  color: #bfd3c5;
+}
+[data-theme="dark"] .history .won {
+  border-color: #90e3bb;
+}
+[data-theme="dark"] .history .lost {
+  border-color: #ffb2c0;
+}
+[data-theme="dark"] .message[data-result="draw"] > span {
+  color: #b5c8bf;
+}
+[data-theme="dark"] .recap {
+  background: linear-gradient(110deg, #20362c, #172730);
+  border-color: #81a58d;
+}
+[data-theme="dark"] .arena:not(.finished) .round-winner {
+  border-color: #f2cd84;
+  box-shadow: 0 0 22px #d5a12b55;
+}
+[data-theme="dark"] .impact {
+  color: #b4f5d3;
+  text-shadow:
+    0 2px 2px #10251c,
+    0 0 15px #173d2c;
+}
+[data-theme="dark"] .reversal .impact {
+  color: #ffe4a5;
+  text-shadow:
+    0 2px 2px #352300,
+    0 0 18px #b5853266;
+}
+[data-theme="dark"] .loss .impact {
+  color: #ffc0ce;
+}
+[data-theme="dark"] .finished .impact {
+  background: #14271ff5;
+  color: #b4f5d3;
+  border-color: #8dc6a5;
+  text-shadow: none;
+}
+[data-theme="dark"] .match-loss .impact {
+  background: #30222cf5;
+  color: #ffc0ce;
+  border-color: #d591a6;
+}
+[data-theme="dark"] .match-draw .impact {
+  background: #1b2d36f5;
+  color: #d0e2e8;
+  border-color: #96b6c1;
+}
+[data-theme="dark"] .sweep-perfect .impact {
+  background: #342c19f5;
+  color: #ffe4a5;
+  border-color: #f2cd84;
+}
+[data-theme="dark"] .sweep-mirror .impact {
+  background: linear-gradient(90deg, #21323b, #293842, #21323b);
+  color: #d7edf4;
+}
+[data-theme="dark"] dialog {
+  background: #15232c;
+  border-color: #718c80;
+  box-shadow: 0 30px 80px #0008;
+}
+[data-theme="dark"] dialog::backdrop {
+  background: #030b12aa;
+}
+[data-theme="dark"] dialog ul,
+[data-theme="dark"] .quick-rules strong {
+  color: #a7ebc8;
+}
+[data-theme="dark"] .fair-note {
+  border-color: #637f70;
+}
+[data-theme="dark"] .build-note {
+  color: #b5c8bf;
+}
+[data-theme="dark"] .card-effect {
+  --effect-ink: #9de9bf;
+}
+[data-theme="dark"] .card-effect.effect-cpu {
+  --effect-ink: #ffb2c0;
+}
+[data-theme="dark"] .completion {
+  background: radial-gradient(ellipse at 50% 25%, #3b321d, #15232c 68%);
+  color: #eaf3ef;
+  border-color: #b59b5c;
+}
+[data-theme="dark"] .completion-eyebrow,
+[data-theme="dark"] .completion-seal {
+  color: #f2cd84;
+}
+[data-theme="dark"] .completion-crown {
+  color: #f2cd84;
+  text-shadow:
+    0 3px #332c1a,
+    0 0 28px #e8c25940;
+}
+[data-theme="dark"] .completion-path {
+  color: #bfe0ca;
+  border-color: #71846d;
+}
+[data-theme="dark"] .completion small {
+  color: #b5c8bf;
+}
+[data-theme="dark"] .app.campaign-complete #action {
+  color: #c0d2c8;
+  border-color: #718c80;
+}
+@media (min-width: 700px) {
+  [data-theme="dark"] .app {
+    background: #112029e8;
+    border-color: #718c80;
+    box-shadow: 0 20px 65px #0005;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="dark"] .clash:not(.finished) .impact {
+    background: #15232cf5;
+  }
 }

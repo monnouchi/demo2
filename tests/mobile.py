@@ -10,6 +10,7 @@ from playwright.sync_api import sync_playwright
 OUT = Path('artifacts')
 OUT.mkdir(exist_ok=True)
 URL = os.environ.get('TEST_URL', 'http://localhost:4173')
+COLOR_SCHEME = os.environ.get('COLOR_SCHEME', 'light')
 errors = []
 results = []
 with sync_playwright() as p:
@@ -18,8 +19,10 @@ with sync_playwright() as p:
     if engine == 'chromium':
         options.update(executable_path=os.environ.get('CHROMIUM_PATH', '/usr/bin/chromium'), args=['--no-sandbox'])
     browser = getattr(p, engine).launch(**options)
+    def new_page(**options):
+        return browser.new_page(color_scheme=COLOR_SCHEME, **options)
     for width, height in [(320, 568), (375, 548), (375, 667), (390, 664), (390, 844), (430, 932)]:
-        page = browser.new_page(viewport={'width': width, 'height': height}, is_mobile=True, has_touch=True, device_scale_factor=2)
+        page = new_page(viewport={'width': width, 'height': height}, is_mobile=True, has_touch=True, device_scale_factor=2)
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(URL)
         assert page.locator('#rules').evaluate('(e) => e.open')
@@ -73,7 +76,7 @@ with sync_playwright() as p:
              ('swept', 0, [5, 1, 2, 3, 4], 'CPUの勝利', False)]
     for name, random_value, cards, expected, reduced in cases:
         match_viewport = {'width': 320, 'height': 568} if reduced else {'width': 375, 'height': 548 if name == 'victory' else 667}
-        page = browser.new_page(viewport=match_viewport, is_mobile=True, has_touch=True,
+        page = new_page(viewport=match_viewport, is_mobile=True, has_touch=True,
                                 reduced_motion='reduce' if reduced else 'no-preference', device_scale_factor=2)
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.add_init_script(f'Math.random = () => {random_value};')
@@ -119,11 +122,12 @@ with sync_playwright() as p:
             page.wait_for_function('!document.querySelector("#action").disabled')
             assert page.locator('#history li.won, #history li.lost, #history li.tied').count() == index + 1
             assert page.evaluate('scrollX === 0 && scrollY === 0')
-            assert page.locator('#action').bounding_box()['y'] + page.locator('#action').bounding_box()['height'] <= match_viewport['height']
+            if page.locator('#action').is_visible():
+                assert page.locator('#action').bounding_box()['y'] + page.locator('#action').bounding_box()['height'] <= match_viewport['height']
             if index < 3:
-                assert '次のラウンドへ' in page.locator('#hand-hint').inner_text()
-                page.locator('#action').tap()
-                assert page.locator('#action').is_disabled()
+                assert '次に出す札をタップ' in page.locator('#hand-hint').inner_text()
+                assert not page.locator('#action').is_visible()
+                assert page.locator('.playing-card:not([disabled])').count() == 4 - index
         assert '最終決着' in page.locator('#action').inner_text()
         assert page.locator('#history li.won, #history li.lost, #history li.tied').count() == 4
         page.wait_for_timeout(200)
@@ -172,7 +176,7 @@ with sync_playwright() as p:
         results.append({'match': name, 'checks': 'five rounds, spam lock, scoring, restart', 'reduced_motion': reduced})
         page.close()
 
-    page = browser.new_page(viewport={'width': 375, 'height': 548}, is_mobile=True, has_touch=True, reduced_motion='reduce')
+    page = new_page(viewport={'width': 375, 'height': 548}, is_mobile=True, has_touch=True, reduced_motion='reduce')
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.add_init_script('Math.random = () => 0;')
     page.goto(URL)
@@ -184,7 +188,6 @@ with sync_playwright() as p:
             page.locator(f'[data-card="{card}"]').tap()
             page.locator('#action').tap()
             page.wait_for_function('!document.querySelector("#action").disabled')
-            if r < 3: page.locator('#action').tap()
         assert '最終決着' in page.locator('#action').inner_text()
         page.locator('#action').tap()
         page.wait_for_selector('#arena.finished', state='attached')
@@ -213,7 +216,7 @@ with sync_playwright() as p:
 
     # A saved crown must not add a row that pushes compact match controls offscreen.
     for width, height in [(320,568),(375,548),(390,664)]:
-        page=browser.new_page(viewport={'width':width,'height':height},is_mobile=True,has_touch=True,reduced_motion='reduce')
+        page=new_page(viewport={'width':width,'height':height},is_mobile=True,has_touch=True,reduced_motion='reduce')
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.add_init_script("Math.random=()=>0;localStorage.setItem('last-trump-campaign',JSON.stringify({version:1,stage:1,wins:6,losses:0,draws:0,clears:1,completed:false}));")
         page.goto(URL)
@@ -223,7 +226,6 @@ with sync_playwright() as p:
             page.locator('#action').tap()
             page.wait_for_function('!document.querySelector("#action").disabled')
             assert page.evaluate('document.documentElement.scrollHeight<=innerHeight')
-            if i<3: page.locator('#action').tap()
         page.locator('#action').tap()
         page.wait_for_function('!document.querySelector("#action").disabled')
         assert page.evaluate('document.documentElement.scrollHeight<=innerHeight')
@@ -233,7 +235,7 @@ with sync_playwright() as p:
 
     # Simulated safe-area insets check primary controls remain above the home indicator.
     for width, height in [(390, 844), (390, 664)]:
-        page = browser.new_page(viewport={'width': width, 'height': height}, is_mobile=True, has_touch=True)
+        page = new_page(viewport={'width': width, 'height': height}, is_mobile=True, has_touch=True)
         page.goto(URL)
         assert page.locator('#rules').evaluate('(e) => e.open')
         page.locator('#ready').click()
@@ -245,7 +247,7 @@ with sync_playwright() as p:
         page.close()
 
     # Keyboard focus, dialog escape, and unavailable localStorage.
-    page = browser.new_page(viewport={'width': 1280, 'height': 900})
+    page = new_page(viewport={'width': 1280, 'height': 900})
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.add_init_script("Object.defineProperty(window, 'localStorage', { get() { throw new Error('storage blocked'); } });")
     page.goto(URL)
@@ -263,5 +265,5 @@ with sync_playwright() as p:
     results.append({'desktop': 'keyboard, focus preservation, Escape, storage blocked'})
     assert not errors, errors
     browser.close()
-(OUT / 'mobile-results.json').write_text(json.dumps({'engine': engine, 'results': results, 'page_errors': errors}, indent=2), encoding='utf-8')
-print(json.dumps({'engine': engine, 'checks': len(results), 'page_errors': errors, 'results': results}, indent=2))
+(OUT / 'mobile-results.json').write_text(json.dumps({'engine': engine, 'color_scheme': COLOR_SCHEME, 'results': results, 'page_errors': errors}, indent=2), encoding='utf-8')
+print(json.dumps({'engine': engine, 'color_scheme': COLOR_SCHEME, 'checks': len(results), 'page_errors': errors, 'results': results}, indent=2))

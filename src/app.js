@@ -11,9 +11,9 @@ import {
   readCampaign,
   finishCampaignMatch,
   nextCircuit,
-} from "./game.js?v=2026.10.02-4";
+} from "./game.js?v=2026.10.02-5";
 const $ = (id) => document.getElementById(id);
-const RELEASE = "2026.10.02-4";
+const RELEASE = "2026.10.02-5";
 const htmlRelease = document.documentElement.dataset.release || "旧版";
 const cssRelease =
   getComputedStyle(document.documentElement)
@@ -24,6 +24,32 @@ $("build-version").textContent =
   htmlRelease === RELEASE && cssRelease === RELEASE
     ? `読込版 ${RELEASE}（HTML・JS・CSS一致）`
     : `版の不一致：HTML ${htmlRelease} / JS ${RELEASE} / CSS ${cssRelease}`;
+
+const systemTheme = matchMedia("(prefers-color-scheme: dark)");
+let themePreference =
+  document.documentElement.dataset.themePreference || "auto";
+function applyTheme() {
+  const dark =
+    themePreference === "dark" ||
+    (themePreference === "auto" && systemTheme.matches);
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  document.documentElement.dataset.themePreference = themePreference;
+  $("theme").value = themePreference;
+  document.querySelector('meta[name="theme-color"]').content = dark
+    ? "#0c151c"
+    : "#f6f5ee";
+}
+$("theme").onchange = () => {
+  themePreference = $("theme").value;
+  try {
+    localStorage.setItem("last-trump-theme", themePreference);
+  } catch {}
+  applyTheme();
+};
+systemTheme.addEventListener("change", () => {
+  if (themePreference === "auto") applyTheme();
+});
+applyTheme();
 
 const names = { 1: "刺客", 2: "双刃", 3: "騎士", 4: "女王", 5: "王冠" };
 const marks = { 1: "✧", 2: "Ⅱ", 3: "♞", 4: "✥", 5: "♛" };
@@ -65,14 +91,52 @@ function face(n) {
   return `<span class="card-corner">${n}<small>${marks[n]}</small></span><span class="card-sigil">${marks[n]}</span><span class="card-name">${names[n]}</span><span class="card-bottom">${n}</span>`;
 }
 const back = '<div class="back-pattern"><span>✦</span></div>';
-function audioReady() {
-  if (!soundOn) return;
+let audioRecovery = null;
+let audioEpoch = 0;
+function audioReady(userGesture = false) {
+  if (!soundOn || document.hidden) return Promise.resolve(false);
   try {
-    audio ||= new (window.AudioContext || window.webkitAudioContext)();
-    audio.resume().catch(() => {});
+    if (!audio || audio.state === "closed") {
+      audio = new (window.AudioContext || window.webkitAudioContext)();
+      audioRecovery = null;
+    }
+    if (audio.state === "running") return Promise.resolve(true);
+    if (audioRecovery && !userGesture) return audioRecovery;
+    const current = audio;
+    const epoch = audioEpoch;
+    const recovery = (async () => {
+      try {
+        // Safari can expose 'interrupted'; normalize it like the successful OFF/ON path.
+        if (current.state === "interrupted") await current.suspend();
+        if (!soundOn || document.hidden || epoch !== audioEpoch) return false;
+        await current.resume();
+        if (!soundOn || document.hidden) {
+          await current.suspend();
+          return false;
+        }
+        return (
+          current === audio &&
+          epoch === audioEpoch &&
+          current.state === "running"
+        );
+      } catch {
+        return false;
+      }
+    })();
+    audioRecovery = recovery;
+    recovery.finally(() => {
+      if (audioRecovery === recovery) audioRecovery = null;
+    });
+    return recovery;
   } catch {
-    /* Visual feedback stays available without audio. */
+    return Promise.resolve(false);
   }
+}
+function pauseAudio() {
+  audioEpoch++;
+  audioRecovery = null;
+  silence();
+  if (audio && audio.state !== "closed") audio.suspend().catch(() => {});
 }
 const activeVoices = new Set();
 function silence() {
@@ -92,7 +156,8 @@ function tone(
   endFrequency = frequency,
   attack = 0.012,
 ) {
-  if (!soundOn || !audio || audio.state !== "running") return;
+  if (!soundOn || document.hidden || !audio || audio.state !== "running")
+    return;
   const start = audio.currentTime + delay;
   const oscillator = audio.createOscillator();
   const volume = audio.createGain();
@@ -237,12 +302,10 @@ $("sound").onclick = () => {
   } catch {}
   updateSound();
   if (soundOn) {
-    audioReady();
-    cue("select");
-  } else if (audio) {
-    silence();
-    audio.suspend().catch(() => {});
-  }
+    audioReady(true).then((ready) => {
+      if (ready && soundOn) cue("select");
+    });
+  } else pauseAudio();
 };
 function message(kicker, title, detail) {
   $("message-kicker").textContent = kicker;
@@ -279,6 +342,7 @@ function renderPublic() {
 }
 function renderHand() {
   const finished = phase === "finished";
+  const nextChoice = phase === "between" && state.history.length < 4;
   $("hand-title").textContent = finished ? "合計点の内訳" : "あなたの手札";
   $("hand-count").textContent = finished
     ? ""
@@ -316,17 +380,20 @@ function renderHand() {
           ? "同じ札をもう一度タップ ↓"
           : "タップで選択"
       : phase === "between"
-        ? "下のボタンで次のラウンドへ ↓"
+        ? nextChoice
+          ? "次に出す札をタップ ↓"
+          : "下のボタンで最終決着へ ↓"
         : "公開中 · 操作ロック";
   $("hand").innerHTML = CARDS.map(
     (n) =>
-      `<button class="playing-card ${state.player.includes(n) ? "" : "used"} ${selected === n ? "selected" : ""}" data-card="${n}" aria-label="${n} ${names[n]}${n === 1 ? "、5に勝つ" : ""}${!state.player.includes(n) ? " 使用済み" : ""}${selected === n ? "、選択中。もう一度タップで勝負" : ""}" aria-pressed="${selected === n}" ${phase !== "choose" || !state.player.includes(n) ? "disabled" : ""}>${face(n)}${selected === n ? '<span class="confirm-note">もう一度<br>タップで勝負</span>' : ""}${n === 1 ? '<span class="special-note">5に勝つ</span>' : ""}</button>`,
+      `<button class="playing-card ${state.player.includes(n) ? "" : "used"} ${selected === n ? "selected" : ""}" data-card="${n}" aria-label="${n} ${names[n]}${n === 1 ? "、5に勝つ" : ""}${!state.player.includes(n) ? " 使用済み" : ""}${selected === n ? "、選択中。もう一度タップで勝負" : ""}" aria-pressed="${selected === n}" ${(phase !== "choose" && !nextChoice) || !state.player.includes(n) ? "disabled" : ""}>${face(n)}${selected === n ? '<span class="confirm-note">もう一度<br>タップで勝負</span>' : ""}${n === 1 ? '<span class="special-note">5に勝つ</span>' : ""}</button>`,
   ).join("");
   $("hand")
     .querySelectorAll("button")
     .forEach(
       (button) =>
         (button.onclick = () => {
+          if (phase === "between" && state.history.length < 4) beginRound(true);
           if (phase !== "choose") return;
           const tapped = Number(button.dataset.card);
           if (selected === tapped) {
@@ -336,8 +403,10 @@ function renderHand() {
           }
           selected = tapped;
           selectedAt = performance.now();
-          audioReady();
-          cue("select");
+          audioReady(true).then((ready) => {
+            if (ready && phase === "choose" && selected === tapped)
+              cue("select");
+          });
           renderHand();
           $("hand")
             .querySelector(`[data-card="${selected}"]`)
@@ -352,9 +421,10 @@ function renderHand() {
         }),
     );
 }
-function beginRound() {
+function beginRound(committed = false) {
+  document.querySelector(".app").classList.remove("between-choice");
   selected = null;
-  reveal = prepareRound(state, Math.random, matchStage); // CPU commitment occurs before player input becomes available.
+  if (!committed) reveal = prepareRound(state, Math.random, matchStage); // CPU commitment occurs before player input becomes available.
   phase = "choose";
   document.querySelector(".app").classList.add("choosing");
   document
@@ -578,10 +648,15 @@ async function battle() {
     );
   } else {
     phase = "between";
+    if (state.history.length < 4) {
+      // Commit BEFORE the result screen enables the next hand, without inspecting its tap.
+      reveal = prepareRound(state, Math.random, matchStage);
+      document.querySelector(".app").classList.add("between-choice");
+    }
     action(
       state.history.length === 4
         ? "残り1枚で最終決着を見る"
-        : `第${state.history.length + 1}ラウンドを始める`,
+        : "次に出す札をタップしてください",
     );
     if (state.history.length === 4)
       $("message-detail").textContent =
@@ -593,7 +668,7 @@ async function battle() {
 }
 $("action").onclick = () => {
   if (phase === "choose") battle();
-  else if (phase === "between") beginRound();
+  else if (phase === "between" && state.history.length === 4) beginRound();
   else if (phase === "finished" || phase === "completed") {
     $("hand").hidden = false;
     start();
@@ -606,9 +681,22 @@ $("help").onclick = () => {
 };
 $("close-rules").onclick = $("ready").onclick = () => $("rules").close();
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden && audio) audio.suspend().catch(() => {});
-  else if (soundOn && audio) audio.resume().catch(() => {});
+  if (document.hidden) pauseAudio();
+  else if (soundOn && audio) audioReady();
 });
+window.addEventListener("pagehide", pauseAudio);
+window.addEventListener("pageshow", () => {
+  if (soundOn && audio) audioReady();
+});
+// A foreground resume may be denied without activation; retry on the next real input.
+for (const event of ["pointerdown", "keydown"])
+  document.addEventListener(
+    event,
+    (e) => {
+      if (soundOn && !e.target.closest?.("#sound")) audioReady(true);
+    },
+    { capture: true },
+  );
 updateSound();
 if (campaign.completed) {
   renderCampaign();

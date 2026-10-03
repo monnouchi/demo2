@@ -112,7 +112,6 @@ with sync_playwright() as p:
         page=opening(browser,stage=stage,reduced=name!='champion-normal')
         for i,c in enumerate(cards[:4]):
             play(page,c)
-            if i<3: page.locator('#action').tap()
         assert '最終決着' in page.locator('#action').inner_text()
         page.evaluate('audioNotes=[]')
         page.locator('#action').evaluate('(e)=>{for(let i=0;i<12;i++)e.click()}')
@@ -141,7 +140,6 @@ with sync_playwright() as p:
     page=opening(browser,sound=False)
     for i,c in enumerate([2,3,4,5]):
         play(page,c)
-        if i<3:page.locator('#action').tap()
     page.locator('#action').tap()
     page.wait_for_function('!document.querySelector("#action").disabled')
     assert notes(page)==[]
@@ -167,11 +165,12 @@ with sync_playwright() as p:
     page.wait_for_timeout(750)
     assert len(notes(page))==count
     page.locator('#sound').tap()
+    page.wait_for_function('(n)=>audioNotes.length===n+2',arg=count)
     resumed=notes(page)[count:]
     assert [n['frequency'] for n in resumed] in [[],[520,780]], 'unmute must not replay old voices'
-    page.locator('#action').tap()
     count=len(notes(page))
     page.locator('[data-card="3"]').tap()
+    page.wait_for_function('(n)=>audioNotes.length===n+2',arg=count)
     assert [n['frequency'] for n in notes(page)[count:]]==[520,780], 'new input must sound after unmute'
     page.close()
     report.append({'mute':'whole match and special result silent; in-flight voices cancelled; no replay on unmute'})

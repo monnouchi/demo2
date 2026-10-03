@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-release="2026.10.02-4">
+<html lang="ja" data-release="2026.10.02-5">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -15,8 +15,27 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23090e1b'/%3E%3Cpath d='M32 5Q34 30 59 32Q34 34 32 59Q30 34 5 32Q30 30 32 5' fill='%23a1f6d6'/%3E%3C/svg%3E"
     />
+    <script>
+      // Resolve before CSS paints; preference never shares the game-progress key.
+      (() => {
+        let preference = "auto";
+        try {
+          const saved = localStorage.getItem("last-trump-theme");
+          if (["auto", "light", "dark"].includes(saved)) preference = saved;
+        } catch {}
+        const dark =
+          preference === "dark" ||
+          (preference === "auto" &&
+            matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.themePreference = preference;
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+        document.querySelector('meta[name="theme-color"]').content = dark
+          ? "#0c151c"
+          : "#f6f5ee";
+      })();
+    </script>
     <title>切り札は最後に | LAST TRUMP</title>
-    <link rel="stylesheet" href="./src/style.css?v=2026.10.02-4" />
+    <link rel="stylesheet" href="./src/style.css?v=2026.10.02-5" />
   </head>
   <body>
     <main class="app">
@@ -26,6 +45,16 @@
           ><span>LAST TRUMP<small>切り札は最後に</small></span>
         </div>
         <div class="tools">
+          <select
+            id="theme"
+            class="icon-button theme-select"
+            aria-label="配色（Autoは端末設定に追従）"
+            title="配色"
+          >
+            <option value="auto">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
           <button
             id="sound"
             class="icon-button"
@@ -175,10 +204,10 @@
         第5ラウンドは残り1枚で自動決着。CPUはあなたが選ぶ前に札を確定します。
       </p>
       <p id="build-version" class="build-note">
-        HTML 2026.10.02-4 / JS確認待ち
+        HTML 2026.10.02-5 / JS確認待ち
       </p>
       <button id="ready" class="primary">遊ぶ <span>→</span></button>
     </dialog>
-    <script type="module" src="./src/app.js?v=2026.10.02-4"></script>
+    <script type="module" src="./src/app.js?v=2026.10.02-5"></script>
   </body>
 </html>
