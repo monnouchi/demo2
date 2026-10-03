@@ -1,9 +1,9 @@
 {
-  "name": "last-trump",
+  "name": "duel-five",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "切り札は最後に — 5枚で交わす光のカードデュエル",
+  "description": "Duel Five — 5枚で交わす光のカードデュエル",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",

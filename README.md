@@ -1,6 +1,12 @@
-# 切り札は最後に — LAST TRUMP
+# Duel Five
 
 5枚、5回、一瞬の逆転。iPhoneの縦画面を中心に作った、日本語のCPU対戦カードゲームです。**dots / OpenAI CodexによるAI制作**。MIT License、Copyright (c) 2026 monnouchi。
+
+## ブラウザで遊ぶ
+
+**[Duel Fiveを遊ぶ](https://monnouchi.github.io/duel-five/)** — インストール不要の一人用CPU対戦です。
+
+ゲーム画面・遊び方・終幕・ブラウザのタイトル・共有プレビューの名称は「Duel Five」で統一しています。
 
 ## 遊び方
 
@@ -99,17 +105,17 @@ UIはChromiumのタッチ端末エミュレーションで、320×568、375×548
 
 ## リポジトリと公開
 
-- ソース: [monnouchi/demo2](https://github.com/monnouchi/demo2)（公開リポジトリ）。
-- Pages配信先: <https://monnouchi.github.io/demo2/>。有効化・配信済みです。
-- [Test and deploy Pages](https://github.com/monnouchi/demo2/actions/workflows/pages.yml) が `main` のpushと手動実行でテスト・ビルド・公開を行います。PRではテストとビルドだけを実行します。
+- ソース: [monnouchi/duel-five](https://github.com/monnouchi/duel-five)（公開リポジトリ）。
+- Pages配信先: <https://monnouchi.github.io/duel-five/>。有効化・配信済みです。
+- [Test and deploy Pages](https://github.com/monnouchi/duel-five/actions/workflows/pages.yml) が `main` のpushと手動実行でテスト・ビルド・公開を行います。PRではテストとビルドだけを実行します。
 - 推奨設定は **Settings → Pages → Build and deployment → Source: GitHub Actions**。現在はブランチ式の `pages-build-deployment` も動作しているため、二重実行を解消する場合はここでActionsに統一します。
 - Node.js 24で `npm test` → `npm run build` を実行し、**`dist/` の中身だけ**をPages artifactとして配信します。リポジトリルート、テスト、検証画像、開発ツールはサイトに含めません。
-- JavaScript/CSS参照は相対パスなので `/demo2/` 配下でも動作します。Node常駐、APIキー、新規サービス契約は不要です。
+- JavaScript/CSS参照は相対パスなので `/duel-five/` 配下でも動作します。Node常駐、APIキー、新規サービス契約は不要です。
 - ワークフローの権限はビルドの `contents: read` と配信の `pages: write` / `id-token: write` に限定。PATなどの長期認証情報は追加しません。
 
 GitHub Pagesは有効化済みです。mainへの更新はテスト・ビルドに成功すると自動配信されます。
 
-更新時にHTMLと古いJS/CSSが混ざることを防ぐため、HTMLのCSS・JS参照とJSのゲームモジュール参照には版付きURLを使います。現在の版は `2026.10.02-5`。ルール画面下部の「読込版」でHTML・JS・CSSの一致を確認できます。配信ファイルを変更するときは `index.html` の `data-release` とURL、`src/app.js` の `RELEASE` とimport URL、`src/style.css` の `--release` を同じ新しい版へ更新してください。
+更新時にHTMLと古いJS/CSSが混ざることを防ぐため、HTMLのCSS・JS参照とJSのゲームモジュール参照には版付きURLを使います。現在の版は `2026.10.03-2`。ルール画面下部の「読込版」でHTML・JS・CSSの一致を確認できます。配信ファイルを変更するときは `index.html` の `data-release` とURL、`src/app.js` の `RELEASE` とimport URL、`src/style.css` の `--release` を同じ新しい版へ更新してください。
 
 制覇画面追加前のJSと新HTMLの混在では、通常結果画面のままになることを再現しました。新しいファイルが揃った状態では旧版の完了データをそのまま読み込み、再読込を2回行っても成績・制覇回数は変わりません。新たな大将勝利では王冠の登場演出と専用音を一度だけ実行し、再読込時は静かな終幕表示になります。演出済みフラグで達成記録を消す処理はありません。動きを減らす設定や音OFFでも終幕画面自体は表示します。
 

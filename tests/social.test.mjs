@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const repo=JSON.parse(await readFile('package.json','utf8')).name==='duel-five'?'duel-five':'verdant-lantern';
+const title=repo==='duel-five'?'Duel Five':'翠灯の迷宮 — 星眠りの森';
+test('static social metadata resolves to a complete project-path PNG without JS',async()=>{
+ const html=await readFile('index.html','utf8');const head=html.match(/<head>([\s\S]*?)<\/head>/)[1];
+ const meta=new Map([...head.matchAll(/<meta\s+(?:property|name)="([^"]+)"\s+content="([^"]+)"/g)].map(m=>[m[1],m[2]]));
+ const canonical=`https://monnouchi.github.io/${repo}/`;
+ assert.ok(head.includes(`<link rel="canonical" href="${canonical}">`));
+ for(const key of ['og:title','twitter:title'])assert.equal(meta.get(key),title);
+ assert.equal(meta.get('og:url'),canonical);assert.equal(meta.get('og:type'),'website');
+ assert.equal(meta.get('og:locale'),'ja_JP');assert.equal(meta.get('twitter:card'),'summary_large_image');
+ for(const key of ['og:image','og:image:secure_url','twitter:image'])assert.equal(meta.get(key),canonical+'assets/social-preview.png');
+ assert.equal(meta.get('og:image:type'),'image/png');
+ assert.equal(meta.get('og:image:width'),'1200');assert.equal(meta.get('og:image:height'),'630');
+ for(const key of ['og:description','twitter:description','og:image:alt','twitter:image:alt'])assert.match(meta.get(key),/[\u3040-\u9fff]/);
+ assert.equal(meta.get('og:description'),meta.get('twitter:description'));assert.equal(meta.get('og:image:alt'),meta.get('twitter:image:alt'));
+ const png=await readFile('assets/social-preview.png');assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+ assert.equal(png.readUInt32BE(16),1200);assert.equal(png.readUInt32BE(20),630);
+});

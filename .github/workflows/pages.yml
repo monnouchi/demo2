@@ -37,7 +37,8 @@ jobs:
           test -f dist/src/game.js
           test -f dist/src/style.css
           test -f dist/LICENSE
-          test "$(find dist -type f | wc -l)" -eq 5
+          test -f dist/assets/social-preview.png
+          test "$(find dist -type f | wc -l)" -eq 6
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
