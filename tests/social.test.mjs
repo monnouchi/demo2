@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const repo=JSON.parse(await readFile('package.json','utf8')).name==='last-trump'?'duel-five':'verdant-lantern';
+const repo=JSON.parse(await readFile('package.json','utf8')).name==='duel-five'?'duel-five':'verdant-lantern';
 const title=repo==='duel-five'?'Duel Five':'翠灯の迷宮 — 星眠りの森';
 test('static social metadata resolves to a complete project-path PNG without JS',async()=>{
  const html=await readFile('index.html','utf8');const head=html.match(/<head>([\s\S]*?)<\/head>/)[1];

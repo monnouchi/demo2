@@ -11,9 +11,9 @@ import {
   readCampaign,
   finishCampaignMatch,
   nextCircuit,
-} from "./game.js?v=2026.10.02-4";
+} from "./game.js?v=2026.10.03-1";
 const $ = (id) => document.getElementById(id);
-const RELEASE = "2026.10.02-4";
+const RELEASE = "2026.10.03-1";
 const htmlRelease = document.documentElement.dataset.release || "旧版";
 const cssRelease =
   getComputedStyle(document.documentElement)
